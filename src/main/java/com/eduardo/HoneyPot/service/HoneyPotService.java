@@ -20,16 +20,16 @@ public class HoneyPotService {
     @Autowired
     private AttackLogRepository attackLogRepository;
     
-    @Value("${honeypot.ssh.port:2222}")
+    @Value("${honeypot.ssh.port}")
     private int sshPort;
     
-    @Value("${honeypot.telnet.port:2323}")
+    @Value("${honeypot.telnet.port}")
     private int telnetPort;
     
-    @Value("${honeypot.ssh.banner:SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5}")
+    @Value("${honeypot.ssh.banner}")
     private String sshBanner;
     
-    @Value("${honeypot.telnet.banner:Ubuntu 20.04.3 LTS}")
+    @Value("${honeypot.telnet.banner}")
     private String telnetBanner;
     
     private ExecutorService executorService;

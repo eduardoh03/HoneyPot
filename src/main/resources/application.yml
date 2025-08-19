@@ -10,7 +10,7 @@ spring:
       password: example
       authentication-database: admin
   profiles:
-    active: dev
+    active: default
 
 server:
   port: 8080
