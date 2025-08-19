@@ -136,26 +136,50 @@ public class HoneyPotService {
             
             // Simular handshake SSH (simplificado)
             String line;
+            boolean hasInteraction = false;
+            
             while ((line = in.readLine()) != null && isRunning) {
                 log.info("SSH [{}]: {}", clientIp, line);
+                hasInteraction = true;
                 
-                // Simular resposta SSH
+                // Simular resposta SSH para handshake
                 if (line.contains("SSH")) {
                     out.println("SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5");
                 }
                 
-                // Simular autenticação
-                if (line.contains("password") || line.contains("Password")) {
-                    attackLog.setUsername("root");
-                    attackLog.setPassword("tentativa_ssh");
-                    attackLog.setSuccessful(false);
-                    attackLogRepository.save(attackLog);
-                    break;
+                // Capturar qualquer tentativa de login (simplificado)
+                if (line.trim().length() > 0 && !line.contains("SSH")) {
+                    // Tentativa de usuário ou senha
+                    if (attackLog.getUsername() == null) {
+                        attackLog.setUsername(line.trim());
+                        log.info("SSH [{}]: Tentativa de usuário: {}", clientIp, line.trim());
+                    } else {
+                        attackLog.setPassword(line.trim());
+                        log.info("SSH [{}]: Tentativa de senha: {}", clientIp, line.trim());
+                        attackLog.setSuccessful(false);
+                        attackLogRepository.save(attackLog);
+                        log.info("SSH [{}]: Log salvo no banco", clientIp);
+                        break;
+                    }
                 }
+            }
+            
+            // Se não houve interação específica, salvar pelo menos a tentativa de conexão
+            if (!hasInteraction) {
+                attackLog.setUsername("tentativa_conexao");
+                attackLog.setPassword("sem_interacao");
+                attackLog.setSuccessful(false);
+                attackLogRepository.save(attackLog);
+                log.info("SSH [{}]: Log de tentativa de conexão salvo", clientIp);
             }
             
         } catch (IOException e) {
             log.error("Erro na conexão SSH com {}: {}", clientIp, e.getMessage());
+            // Salvar log mesmo com erro
+            attackLog.setUsername("erro_conexao");
+            attackLog.setPassword("erro: " + e.getMessage());
+            attackLog.setSuccessful(false);
+            attackLogRepository.save(attackLog);
         } finally {
             try {
                 clientSocket.close();

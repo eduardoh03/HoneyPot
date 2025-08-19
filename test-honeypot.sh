@@ -25,7 +25,7 @@ else
 fi
 
 echo -e "\n5. Testando conexão SSH real..."
-echo "quit" | nc localhost 2222 | head -5
+echo -e "SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5\ntest\npassword" | nc localhost 2222 | head -5
 
 echo -e "\n6. Testando conexão Telnet real..."
 echo -e "test\npassword\nexit" | nc localhost 2323 | head -10
