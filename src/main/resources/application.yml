@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: HoneyPot
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: honeypot_dev
+      username: root
+      password: example
+      authentication-database: admin
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.eduardo.HoneyPot: DEBUG
+    org.springframework.data.mongodb: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Configurações da honeypot
+honeypot:
+  ssh:
+    port: 2222  # Porta não privilegiada para desenvolvimento
+    banner: "SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5"
+  telnet:
+    port: 2323  # Porta não privilegiada para desenvolvimento
+    banner: "Ubuntu 20.04.3 LTS"
+  auto-start: true
