@@ -114,10 +114,36 @@ honeypot.auto-start=true
 
 ### Estatísticas
 - `GET /api/honeypot/stats` - Estatísticas gerais
-- `GET /api/honeypot/stats/top-ips` - Top IPs atacantes
+- `GET /api/honeypot/stats/top-ips` - Top IPs atacantes ✅ IMPLEMENTED
 - `GET /api/honeypot/stats/top-credentials` - Top credenciais tentadas
 
 ## 🧪 Testando a Honeypot
+
+### Testando Endpoints da API
+
+#### Top IPs Atacantes
+```bash
+# Top 10 IPs (padrão)
+curl http://localhost:8080/api/honeypot/stats/top-ips
+
+# Top 5 IPs
+curl "http://localhost:8080/api/honeypot/stats/top-ips?limit=5"
+
+# Resposta exemplo:
+{
+  "limit": 5,
+  "topIps": [
+    {
+      "ip": "127.0.0.1",
+      "count": 8,
+      "lastAttack": "2025-08-19T18:31:39.993"
+    }
+  ],
+  "message": "Top 5 IPs mais ativos",
+  "total": 1,
+  "timestamp": "2025-08-19T19:14:08.323080645"
+}
+```
 
 ### Teste SSH
 ```bash

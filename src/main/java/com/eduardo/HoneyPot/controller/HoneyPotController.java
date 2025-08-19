@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/honeypot")
@@ -180,9 +182,61 @@ public class HoneyPotController {
     }
     
     @GetMapping("/stats/top-ips")
-    public ResponseEntity<Map<String, Object>> getTopIps() {
-        // Implementar lógica para top IPs
-        return ResponseEntity.ok(Map.of("message", "Funcionalidade em desenvolvimento"));
+    public ResponseEntity<Map<String, Object>> getTopIps(
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            List<AttackLog> allLogs = attackLogRepository.findAllSourceIps();
+            
+            if (allLogs.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                    "message", "Nenhum ataque registrado ainda",
+                    "topIps", List.of(),
+                    "limit", limit,
+                    "timestamp", LocalDateTime.now()
+                ));
+            }
+            
+            // Agrupar por IP e contar ocorrências
+            Map<String, Long> ipCounts = allLogs.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                    AttackLog::getSourceIp,
+                    java.util.stream.Collectors.counting()
+                ));
+            
+            // Ordenar por contagem e pegar os top N
+            List<Map<String, Object>> topIps = new ArrayList<>();
+            ipCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(limit)
+                .forEach(entry -> {
+                    LocalDateTime lastAttack = allLogs.stream()
+                        .filter(log -> log.getSourceIp().equals(entry.getKey()))
+                        .map(AttackLog::getTimestamp)
+                        .max(LocalDateTime::compareTo)
+                        .orElse(null);
+                    
+                    Map<String, Object> ipInfo = new HashMap<>();
+                    ipInfo.put("ip", entry.getKey());
+                    ipInfo.put("count", entry.getValue());
+                    ipInfo.put("lastAttack", lastAttack);
+                    topIps.add(ipInfo);
+                });
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Top " + limit + " IPs mais ativos",
+                "topIps", topIps,
+                "limit", limit,
+                "total", topIps.size(),
+                "timestamp", LocalDateTime.now()
+            ));
+            
+        } catch (Exception e) {
+            log.error("Erro ao buscar top IPs: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "Erro ao buscar top IPs: " + e.getMessage(),
+                "timestamp", LocalDateTime.now()
+            ));
+        }
     }
     
     @GetMapping("/stats/top-credentials")

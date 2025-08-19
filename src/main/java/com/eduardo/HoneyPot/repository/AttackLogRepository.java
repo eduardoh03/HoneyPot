@@ -29,4 +29,7 @@ public interface AttackLogRepository extends MongoRepository<AttackLog, String> 
     long countBySourceIp(String sourceIp);
     
     long countByProtocol(String protocol);
+    
+    @Query(value = "{}", fields = "{'sourceIp': 1, 'timestamp': 1}")
+    List<AttackLog> findAllSourceIps();
 }
