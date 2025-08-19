@@ -1,0 +1,249 @@
+package com.eduardo.HoneyPot.service;
+
+import com.eduardo.HoneyPot.model.AttackLog;
+import com.eduardo.HoneyPot.repository.AttackLogRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@Service
+@Slf4j
+public class HoneyPotService {
+    
+    @Autowired
+    private AttackLogRepository attackLogRepository;
+    
+    @Value("${honeypot.ssh.port:2222}")
+    private int sshPort;
+    
+    @Value("${honeypot.telnet.port:2323}")
+    private int telnetPort;
+    
+    @Value("${honeypot.ssh.banner:SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5}")
+    private String sshBanner;
+    
+    @Value("${honeypot.telnet.banner:Ubuntu 20.04.3 LTS}")
+    private String telnetBanner;
+    
+    private ExecutorService executorService;
+    private ServerSocket sshServer;
+    private ServerSocket telnetServer;
+    private boolean isRunning = false;
+    
+    public void startHoneyPot() {
+        if (isRunning) {
+            log.warn("Honeypot já está rodando!");
+            return;
+        }
+        
+        executorService = Executors.newCachedThreadPool();
+        
+        try {
+            // Iniciar servidor SSH
+            sshServer = new ServerSocket(sshPort);
+            log.info("Servidor SSH honeypot iniciado na porta {}", sshPort);
+            
+            // Iniciar servidor Telnet
+            telnetServer = new ServerSocket(telnetPort);
+            log.info("Servidor Telnet honeypot iniciado na porta {}", telnetPort);
+            
+            isRunning = true;
+            
+            // Aceitar conexões SSH
+            executorService.submit(() -> acceptSSHConnections());
+            
+            // Aceitar conexões Telnet
+            executorService.submit(() -> acceptTelnetConnections());
+            
+        } catch (IOException e) {
+            log.error("Erro ao iniciar honeypot: {}", e.getMessage());
+            stopHoneyPot();
+        }
+    }
+    
+    public void stopHoneyPot() {
+        isRunning = false;
+        
+        try {
+            if (sshServer != null && !sshServer.isClosed()) {
+                sshServer.close();
+            }
+            if (telnetServer != null && !telnetServer.isClosed()) {
+                telnetServer.close();
+            }
+        } catch (IOException e) {
+            log.error("Erro ao fechar servidores: {}", e.getMessage());
+        }
+        
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+        
+        log.info("Honeypot parado");
+    }
+    
+    private void acceptSSHConnections() {
+        while (isRunning && !sshServer.isClosed()) {
+            try {
+                Socket clientSocket = sshServer.accept();
+                String clientIp = clientSocket.getInetAddress().getHostAddress();
+                log.info("Nova conexão SSH de: {}", clientIp);
+                
+                executorService.submit(() -> handleSSHConnection(clientSocket));
+                
+            } catch (IOException e) {
+                if (isRunning) {
+                    log.error("Erro ao aceitar conexão SSH: {}", e.getMessage());
+                }
+            }
+        }
+    }
+    
+    private void acceptTelnetConnections() {
+        while (isRunning && !telnetServer.isClosed()) {
+            try {
+                Socket clientSocket = telnetServer.accept();
+                String clientIp = clientSocket.getInetAddress().getHostAddress();
+                log.info("Nova conexão Telnet de: {}", clientIp);
+                
+                executorService.submit(() -> handleTelnetConnection(clientSocket));
+                
+            } catch (IOException e) {
+                if (isRunning) {
+                    log.error("Erro ao aceitar conexão Telnet: {}", e.getMessage());
+                }
+            }
+        }
+    }
+    
+    private void handleSSHConnection(Socket clientSocket) {
+        String clientIp = clientSocket.getInetAddress().getHostAddress();
+        AttackLog attackLog = new AttackLog(clientIp, sshPort, "SSH");
+        attackLog.setBanner(sshBanner);
+        
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+            
+            // Enviar banner SSH
+            out.println(sshBanner);
+            
+            // Simular handshake SSH (simplificado)
+            String line;
+            while ((line = in.readLine()) != null && isRunning) {
+                log.info("SSH [{}]: {}", clientIp, line);
+                
+                // Simular resposta SSH
+                if (line.contains("SSH")) {
+                    out.println("SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5");
+                }
+                
+                // Simular autenticação
+                if (line.contains("password") || line.contains("Password")) {
+                    attackLog.setUsername("root");
+                    attackLog.setPassword("tentativa_ssh");
+                    attackLog.setSuccessful(false);
+                    attackLogRepository.save(attackLog);
+                    break;
+                }
+            }
+            
+        } catch (IOException e) {
+            log.error("Erro na conexão SSH com {}: {}", clientIp, e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                log.error("Erro ao fechar conexão SSH: {}", e.getMessage());
+            }
+        }
+    }
+    
+    private void handleTelnetConnection(Socket clientSocket) {
+        String clientIp = clientSocket.getInetAddress().getHostAddress();
+        AttackLog attackLog = new AttackLog(clientIp, telnetPort, "TELNET");
+        attackLog.setBanner(telnetBanner);
+        
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+            
+            // Enviar banner Telnet
+            out.println(telnetBanner);
+            out.println("login: ");
+            
+            String line;
+            while ((line = in.readLine()) != null && isRunning) {
+                log.info("TELNET [{}]: {}", clientIp, line);
+                
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+                
+                // Simular login
+                if (attackLog.getUsername() == null) {
+                    attackLog.setUsername(line.trim());
+                    out.println("Password: ");
+                } else if (attackLog.getPassword() == null) {
+                    attackLog.setPassword(line.trim());
+                    attackLog.setSuccessful(false);
+                    attackLogRepository.save(attackLog);
+                    
+                    // Simular shell fake
+                    out.println("Welcome to Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-74-generic x86_64)");
+                    out.println("Last login: " + java.time.LocalDateTime.now());
+                    out.println("$ ");
+                    
+                    // Simular comandos
+                    while ((line = in.readLine()) != null && isRunning) {
+                        log.info("TELNET COMMAND [{}]: {}", clientIp, line);
+                        
+                        String command = line.trim();
+                        attackLog.setCommand(command);
+                        attackLogRepository.save(attackLog);
+                        
+                        switch (command.toLowerCase()) {
+                            case "ls":
+                                out.println("bin  boot  dev  etc  home  lib  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var");
+                                break;
+                            case "pwd":
+                                out.println("/root");
+                                break;
+                            case "uname":
+                                out.println("Linux");
+                                break;
+                            case "echo":
+                                out.println("echo");
+                                break;
+                            case "exit":
+                            case "logout":
+                                return;
+                            default:
+                                out.println("bash: " + command + ": command not found");
+                        }
+                        out.println("$ ");
+                    }
+                    break;
+                }
+            }
+            
+        } catch (IOException e) {
+            log.error("Erro na conexão Telnet com {}: {}", clientIp, e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                log.error("Erro ao fechar conexão Telnet: {}", e.getMessage());
+            }
+        }
+    }
+    
+    public boolean isRunning() {
+        return isRunning;
+    }
+}
