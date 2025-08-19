@@ -15,6 +15,7 @@ logging:
     org.springframework.web: DEBUG
 
 # Configurações específicas para desenvolvimento
+# As portas e banners são configurados no application.properties
 honeypot:
   auto-start: true
   debug: true

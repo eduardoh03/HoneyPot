@@ -29,7 +29,9 @@
 - Java 24+
 - Maven 3.6+
 - Docker e Docker Compose
-- **IMPORTANTE**: Para desenvolvimento, usamos portas 2222 (SSH) e 2323 (Telnet). Para produção, configure as portas 22 e 23 no arquivo de configuração.
+- **IMPORTANTE**: 
+  - **Desenvolvimento**: Portas 2222 (SSH) e 2323 (Telnet) - configuradas em `application.properties`
+  - **Produção**: Portas 22 (SSH) e 23 (Telnet) - use o perfil `prod`
 
 ### 2. Iniciar MongoDB
 ```bash
@@ -38,6 +40,8 @@ docker-compose up -d
 ```
 
 ### 3. Executar a Aplicação
+
+#### Desenvolvimento (portas 2222/2323)
 ```bash
 # Compilar e executar
 ./mvnw spring-boot:run
@@ -47,6 +51,15 @@ docker-compose up -d
 java -jar target/HoneyPot-0.0.1-SNAPSHOT.jar
 ```
 
+#### Produção (portas 22/23 - requer root)
+```bash
+# Compilar
+./mvnw clean package
+
+# Executar com perfil de produção (requer privilégios de root)
+sudo java -jar target/HoneyPot-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+```
+
 ### 4. Testar a Honeypot
 ```bash
 # Executar script de teste
@@ -54,6 +67,35 @@ java -jar target/HoneyPot-0.0.1-SNAPSHOT.jar
 
 # Ou testar manualmente
 curl http://localhost:8080/api/honeypot/status
+```
+
+## ⚙️ Configuração
+
+### Perfis Disponíveis
+
+#### Desenvolvimento (padrão)
+- **Arquivo**: `application.properties`
+- **Portas**: SSH (2222), Telnet (2323)
+- **Execução**: `./mvnw spring-boot:run`
+
+#### Produção
+- **Arquivo**: `application-prod.properties`
+- **Portas**: SSH (22), Telnet (23)
+- **Execução**: `sudo java -jar app.jar --spring.profiles.active=prod`
+
+### Personalizar Configurações
+Edite o arquivo `application.properties` para alterar:
+```properties
+# Portas da honeypot
+honeypot.ssh.port=2222
+honeypot.telnet.port=2323
+
+# Banners personalizados
+honeypot.ssh.banner=SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5
+honeypot.telnet.banner=Ubuntu 20.04.3 LTS
+
+# Auto-inicialização
+honeypot.auto-start=true
 ```
 
 ## 🔌 Endpoints da API

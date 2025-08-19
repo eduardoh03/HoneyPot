@@ -5,6 +5,8 @@ target/
 !**/src/test/**/target/
 .mvn/*
 application.properties
+application-dev.properties
+application-prod.properties
 .vscode/*
 .vscode/
 

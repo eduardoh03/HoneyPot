@@ -31,12 +31,4 @@ management:
     health:
       show-details: always
 
-# Configurações da honeypot
-honeypot:
-  ssh:
-    port: 2222  # Porta não privilegiada para desenvolvimento
-    banner: "SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5"
-  telnet:
-    port: 2323  # Porta não privilegiada para desenvolvimento
-    banner: "Ubuntu 20.04.3 LTS"
-  auto-start: true
+# Configurações da honeypot movidas para application.properties
