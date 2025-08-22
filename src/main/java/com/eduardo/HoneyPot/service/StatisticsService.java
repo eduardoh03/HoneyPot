@@ -238,4 +238,28 @@ public class StatisticsService {
             throw new RuntimeException("Erro ao buscar estatísticas de timeline", e);
         }
     }
+    
+    /**
+     * Busca a contagem real de IPs únicos
+     */
+    public Map<String, Object> getUniqueIpsCount() {
+        try {
+            List<AttackLog> allLogs = attackLogRepository.findAllSourceIps();
+            
+            long uniqueIpsCount = allLogs.stream()
+                .map(AttackLog::getSourceIp)
+                .distinct()
+                .count();
+            
+            return Map.of(
+                "uniqueIpsCount", uniqueIpsCount,
+                "totalLogs", allLogs.size(),
+                "timestamp", LocalDateTime.now()
+            );
+            
+        } catch (Exception e) {
+            log.error("Erro ao buscar contagem de IPs únicos: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao buscar contagem de IPs únicos", e);
+        }
+    }
 }

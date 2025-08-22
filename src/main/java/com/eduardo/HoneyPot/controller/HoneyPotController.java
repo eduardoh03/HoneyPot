@@ -660,6 +660,25 @@ public class HoneyPotController {
         }
     }
 
+    @Operation(
+        summary = "Contagem de IPs Únicos",
+        description = "Retorna a contagem real de IPs únicos que atacaram o sistema",
+        tags = {"Estatísticas"}
+    )
+    @GetMapping("/stats/unique-ips")
+    public ResponseEntity<Map<String, Object>> getUniqueIpsCount() {
+        try {
+            Map<String, Object> uniqueIps = statisticsService.getUniqueIpsCount();
+            return ResponseEntity.ok(uniqueIps);
+        } catch (Exception e) {
+            log.error("Erro ao buscar contagem de IPs únicos: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "Erro ao buscar IPs únicos: " + e.getMessage(),
+                "timestamp", LocalDateTime.now()
+            ));
+        }
+    }
+
     // Limpar logs (cuidado!)
     @DeleteMapping("/logs")
     public ResponseEntity<Map<String, String>> clearAllLogs() {

@@ -155,15 +155,24 @@ class SecurityDashboard {
             document.getElementById('ssh-attacks').textContent = stats.sshLogs || '0';
             document.getElementById('telnet-attacks').textContent = stats.telnetLogs || '0';
             
-            // Calcular IPs únicos (aproximação)
-            const uniqueIps = Math.max(1, Math.floor((stats.totalLogs || 0) * 0.3));
-            document.getElementById('unique-ips').textContent = uniqueIps.toString();
+            this.loadUniqueIps();
             
             // Animar números
             this.animateNumbers();
         } catch (error) {
             console.error('Erro ao carregar estatísticas:', error);
             this.setStatsError();
+        }
+    }
+
+    async loadUniqueIps() {
+        try {
+            const data = await this.apiCall('/stats/unique-ips');
+            const uniqueCount = data.uniqueIpsCount || 0;
+            document.getElementById('unique-ips').textContent = uniqueCount.toString();
+        } catch (error) {
+            console.error('Erro ao carregar IPs únicos:', error);
+            document.getElementById('unique-ips').textContent = '0';
         }
     }
 
