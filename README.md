@@ -1,4 +1,4 @@
-# 🍯 HoneyPot SSH/Telnet com Spring Boot
+# HoneyPot SSH/Telnet com Spring Boot
 
 > **Sistema de honeypot profissional para captura e análise de ataques SSH/Telnet**
 
@@ -7,13 +7,13 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-5.5.1-blue.svg)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎯 Visão Geral
+## Visão Geral
 
 Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, seguindo princípios **SOLID** e **Clean Architecture**. O sistema captura, analisa e monitora tentativas de ataque em tempo real, fornecendo insights valiosos sobre padrões de segurança.
 
-## 🏗️ Arquitetura do Sistema
+## Arquitetura do Sistema
 
-### 📦 Estrutura de Camadas
+### Estrutura de Camadas
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -39,7 +39,7 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 🔧 Services Implementados
+### Services Implementados
 
 | Service | Responsabilidade | Status |
 |---------|------------------|---------|
@@ -48,9 +48,9 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 | **StatisticsService** | Análises e estatísticas | ✅ Implementado |
 | **ManagementService** | Controle e monitoramento | ✅ Implementado |
 
-## ✅ Funcionalidades Implementadas
+## Funcionalidades Implementadas
 
-### 🎯 **Core da Honeypot**
+### **Core da Honeypot**
 - ✅ **Portas SSH (2222/22)** e **Telnet (2323/23)** configuráveis
 - ✅ **Banners falsos** simulando OpenSSH/Telnet real
 - ✅ **Captura de credenciais** (usuário/senha) em tempo real
@@ -58,13 +58,13 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 - ✅ **Logging automático** de todas as interações
 - ✅ **Auto-inicialização** configurável
 
-### 🗄️ **Persistência e Dados**
+### **Persistência e Dados**
 - ✅ **MongoDB** com Spring Data
 - ✅ **Collection `attack_logs`** estruturada
 - ✅ **Índices otimizados** para consultas rápidas
 - ✅ **Docker Compose** para MongoDB + Mongo Express
 
-### 🌐 **API REST Completa**
+### **API REST Completa**
 - ✅ **16 endpoints** implementados e testados
 - ✅ **Paginação inteligente** nos logs
 - ✅ **Filtros avançados** (IP, protocolo, período, usuário)
@@ -72,7 +72,7 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 - ✅ **Health checks** e monitoramento
 - ✅ **Tratamento de erros** centralizado
 
-### 🏗️ **Arquitetura e Qualidade**
+### **Arquitetura e Qualidade**
 - ✅ **Clean Architecture** implementada
 - ✅ **Separação de responsabilidades** (SOLID)
 - ✅ **Services especializados** por domínio
@@ -80,9 +80,9 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 - ✅ **Logs estruturados** e centralizados
 - ✅ **Configuração por perfis** (dev/prod)
 
-## 🚀 Como Usar
+## Como Usar
 
-### 📋 Pré-requisitos
+### Pré-requisitos
 
 ```bash
 # Sistema
@@ -96,7 +96,7 @@ export JAVA_HOME=/usr/lib/jvm/jdk-24.0.2-oracle-x64
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-### 🐳 1. Iniciar Infraestrutura
+### 1. Iniciar Infraestrutura
 
 ```bash
 # Iniciar MongoDB + Mongo Express
@@ -108,7 +108,7 @@ docker ps
 docker logs mongo
 ```
 
-### 🏃 2. Executar a Aplicação
+### 2. Executar a Aplicação
 
 #### **Desenvolvimento** (Portas 2222/2323)
 ```bash
@@ -130,7 +130,7 @@ sudo java -jar target/HoneyPot-0.0.1-SNAPSHOT.jar \
   --spring.profiles.active=prod
 ```
 
-### 🧪 3. Testar a Honeypot
+### 3. Testar a Honeypot
 
 ```bash
 # Teste rápido da API
@@ -147,9 +147,9 @@ telnet localhost 2323
 ./test-honeypot.sh
 ```
 
-## ⚙️ Configuração
+## Configuração
 
-### 🔧 Perfis Disponíveis
+### Perfis Disponíveis
 
 #### **Desenvolvimento** (Padrão)
 ```properties
@@ -169,7 +169,7 @@ honeypot.auto-start=true
 honeypot.production=true
 ```
 
-### 🎨 Personalização
+### Personalização
 
 ```properties
 # Banners personalizados
@@ -182,9 +182,9 @@ honeypot.session-timeout=300
 honeypot.log-level=INFO
 ```
 
-## 🔌 API REST - Endpoints
+## API REST - Endpoints
 
-### 🎮 **Controle da Honeypot**
+### **Controle da Honeypot**
 | Método | Endpoint | Descrição | Status |
 |--------|----------|-----------|---------|
 | `POST` | `/api/honeypot/start` | Iniciar honeypot | ✅ |
@@ -193,7 +193,7 @@ honeypot.log-level=INFO
 | `GET` | `/api/honeypot/status` | Status detalhado | ✅ |
 | `GET` | `/api/honeypot/health` | Saúde do sistema | ✅ |
 
-### 📊 **Consulta de Logs**
+### **Consulta de Logs**
 | Método | Endpoint | Descrição | Status |
 |--------|----------|-----------|---------|
 | `GET` | `/api/honeypot/logs` | Logs paginados | ✅ |
@@ -203,16 +203,16 @@ honeypot.log-level=INFO
 | `GET` | `/api/honeypot/logs/username/{username}` | Logs por usuário | ✅ |
 | `DELETE` | `/api/honeypot/logs` | Limpar todos os logs | ✅ |
 
-### 📈 **Estatísticas e Análises**
+### **Estatísticas e Análises**
 | Método | Endpoint | Descrição | Status |
 |--------|----------|-----------|---------|
 | `GET` | `/api/honeypot/stats` | Estatísticas gerais | ✅ |
 | `GET` | `/api/honeypot/stats/top-ips` | Top IPs atacantes | ✅ |
 | `GET` | `/api/honeypot/stats/top-credentials` | Top credenciais | ✅ |
 
-## 🧪 Exemplos de Uso da API
+## Exemplos de Uso da API
 
-### 📊 **Top IPs Atacantes**
+### **Top IPs Atacantes**
 ```bash
 # Top 10 IPs (padrão)
 curl http://localhost:8080/api/honeypot/stats/top-ips
@@ -238,7 +238,7 @@ curl "http://localhost:8080/api/honeypot/stats/top-ips?limit=5"
 }
 ```
 
-### 🔐 **Top Credenciais Tentadas**
+### **Top Credenciais Tentadas**
 ```bash
 curl "http://localhost:8080/api/honeypot/stats/top-credentials?limit=3"
 ```
@@ -265,14 +265,14 @@ curl "http://localhost:8080/api/honeypot/stats/top-credentials?limit=3"
 }
 ```
 
-### 📝 **Logs Paginados**
+### **Logs Paginados**
 ```bash
 curl "http://localhost:8080/api/honeypot/logs?page=0&size=3"
 ```
 
-## 📊 Estrutura do Banco
+## Estrutura do Banco
 
-### 🗄️ **Collection: `attack_logs`**
+### **Collection: `attack_logs`**
 ```json
 {
   "id": "68a4ed3b5c716c8fc6323124",
@@ -289,7 +289,7 @@ curl "http://localhost:8080/api/honeypot/logs?page=0&size=3"
 }
 ```
 
-### 🔍 **Índices MongoDB**
+### **Índices MongoDB**
 ```javascript
 // Índices otimizados para consultas rápidas
 db.attack_logs.createIndex({"timestamp": -1})
@@ -299,9 +299,9 @@ db.attack_logs.createIndex({"username": 1})
 db.attack_logs.createIndex({"sourceIp": 1, "timestamp": -1})
 ```
 
-## 🐳 Docker
+## Docker
 
-### 🗄️ **MongoDB**
+### **MongoDB**
 ```yaml
 # docker/docker-compose.yml
 services:
@@ -315,7 +315,7 @@ services:
       MONGO_INITDB_DATABASE: honeypot_dev
 ```
 
-### 🌐 **Mongo Express**
+### **Mongo Express**
 ```yaml
   mongo-express:
     image: mongo-express:latest
@@ -327,46 +327,46 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
 ```
 
-## 🚀 Roadmap de Desenvolvimento
+## Roadmap de Desenvolvimento
 
-### ✅ **FASE 1: MVP (CONCLUÍDA)**
+### **FASE 1: MVP (CONCLUÍDA)**
 - [x] Honeypot SSH/Telnet básico
 - [x] Captura de credenciais
 - [x] Logging em MongoDB
 - [x] API REST básica
 - [x] Docker para infraestrutura
 
-### ✅ **FASE 2: Arquitetura (CONCLUÍDA)**
+### **FASE 2: Arquitetura (CONCLUÍDA)**
 - [x] Refatoração para Clean Architecture
 - [x] Services especializados
 - [x] Controller limpo
 - [x] Tratamento de erros centralizado
 - [x] Logs estruturados
 
-### 🔄 **FASE 3: Funcionalidades Avançadas (EM DESENVOLVIMENTO)**
+### **FASE 3: Funcionalidades Avançadas (EM DESENVOLVIMENTO)**
 - [ ] **Dashboard Web** - Interface gráfica para visualização
 - [ ] **Cache Redis** - Otimização de performance
 - [ ] **Métricas Avançadas** - Análises de segurança
 - [ ] **Sistema de Alertas** - Notificações em tempo real
 - [ ] **Relatórios Automáticos** - PDF/Excel
 
-### 📋 **FASE 4: Testes e Qualidade (PRÓXIMOS PASSOS)**
+### **FASE 4: Testes e Qualidade (PRÓXIMOS PASSOS)**
 - [ ] **Testes Unitários** - JUnit 5 + Mockito
 - [ ] **Testes de Integração** - TestContainers
 - [ ] **Testes de Performance** - JMeter/Gatling
 - [ ] **Cobertura de Código** - JaCoCo
 - [ ] **Análise Estática** - SonarQube
 
-### 🚀 **FASE 5: Produção e Monitoramento**
+### **FASE 5: Produção e Monitoramento**
 - [ ] **CI/CD Pipeline** - GitHub Actions
 - [ ] **Monitoramento** - Prometheus + Grafana
 - [ ] **Logs Centralizados** - ELK Stack
 - [ ] **Segurança** - OWASP ZAP
 - [ ] **Deploy** - Kubernetes
 
-## 🧪 Testes
+## Testes
 
-### 🧪 **Testes Unitários**
+### **Testes Unitários**
 ```bash
 # Executar todos os testes
 ./mvnw test
@@ -378,7 +378,7 @@ services:
 ./mvnw test -Dtest=LogServiceTest
 ```
 
-### 🔄 **Testes de Integração**
+### **Testes de Integração**
 ```bash
 # Testes com containers
 ./mvnw verify
@@ -387,7 +387,7 @@ services:
 ./mvnw test -Dtest=HoneyPotIntegrationTest
 ```
 
-### 📊 **Testes de Performance**
+### **Testes de Performance**
 ```bash
 # Teste de carga com JMeter
 jmeter -n -t tests/performance/honeypot-load-test.jmx
@@ -396,12 +396,12 @@ jmeter -n -t tests/performance/honeypot-load-test.jmx
 ./mvnw gatling:test
 ```
 
-## 🔒 Segurança
+## Segurança
 
-### ⚠️ **Avisos Importantes**
+### **Avisos Importantes**
 > **ATENÇÃO**: Esta honeypot é para fins educacionais e de pesquisa.
 
-### 🛡️ **Recomendações de Produção**
+### **Recomendações de Produção**
 1. **Isolamento**: Execute em container Docker isolado
 2. **Firewall**: Configure regras de acesso restritas
 3. **Monitoramento**: Logs e alertas 24/7
@@ -409,7 +409,7 @@ jmeter -n -t tests/performance/honeypot-load-test.jmx
 5. **Backup**: Estratégia de backup para logs
 6. **Auditoria**: Revisão regular de logs
 
-### 🔐 **Configurações de Segurança**
+### **Configurações de Segurança**
 ```properties
 # application-prod.properties
 honeypot.security.enabled=true
@@ -419,9 +419,9 @@ honeypot.security.blacklist.enabled=true
 honeypot.security.whitelist.enabled=false
 ```
 
-## 📝 Logs e Monitoramento
+## Logs e Monitoramento
 
-### 📊 **Estrutura de Logs**
+### **Estrutura de Logs**
 ```json
 {
   "timestamp": "2025-08-22T07:53:07.021874654",
@@ -437,7 +437,7 @@ honeypot.security.whitelist.enabled=false
 }
 ```
 
-### 📈 **Métricas Disponíveis**
+### **Métricas Disponíveis**
 - **Conexões ativas** por protocolo
 - **Taxa de ataques** por minuto/hora
 - **IPs mais ativos** em tempo real
@@ -445,9 +445,9 @@ honeypot.security.whitelist.enabled=false
 - **Performance** da aplicação
 - **Uso de recursos** do sistema
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
-### 🔍 **Problemas Comuns**
+### **Problemas Comuns**
 
 #### **Porta já em uso**
 ```bash
@@ -490,55 +490,55 @@ echo $JAVA_HOME
 ./mvnw clean compile
 ```
 
-## 📚 Recursos e Referências
+## Recursos e Referências
 
-### 🔗 **Links Úteis**
+### **Links Úteis**
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Spring Data MongoDB](https://spring.io/projects/spring-data-mongodb)
 - [MongoDB Documentation](https://docs.mongodb.com/)
 - [Docker Documentation](https://docs.docker.com/)
 - [Honeypot Security](https://en.wikipedia.org/wiki/Honeypot_(computing))
 
-### 📖 **Artigos e Tutoriais**
+### **Artigos e Tutoriais**
 - [Building a Honeypot with Spring Boot](https://example.com)
 - [MongoDB Security Best Practices](https://example.com)
 - [Spring Boot Testing Strategies](https://example.com)
 
-### 🛠️ **Ferramentas Relacionadas**
+### **Ferramentas Relacionadas**
 - [Wireshark](https://www.wireshark.org/) - Análise de tráfego
 - [Nmap](https://nmap.org/) - Scanner de rede
 - [Metasploit](https://www.metasploit.com/) - Framework de teste
 
-## 🤝 Contribuição
+## Contribuição
 
-### 📝 **Como Contribuir**
+### **Como Contribuir**
 1. Fork o projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
 3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-### 🐛 **Reportar Bugs**
+### **Reportar Bugs**
 - Use o sistema de Issues do GitHub
 - Inclua logs detalhados
 - Descreva os passos para reproduzir
 - Especifique ambiente e versões
 
-### 💡 **Sugestões de Features**
+### **Sugestões de Features**
 - Abra uma Issue com label `enhancement`
 - Descreva o caso de uso
 - Inclua mockups se aplicável
 - Discuta implementação com a comunidade
 
-## 📄 Licença
+## Licença
 
 Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 👨‍💻 Autores
+## Autores
 
 - **Eduardo** - *Desenvolvimento inicial* - [@eduardo](https://github.com/eduardo)
 
-## 🙏 Agradecimentos
+## Agradecimentos
 
 - Comunidade Spring Boot
 - Contribuidores do MongoDB
@@ -547,7 +547,7 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 <div align="center">
 
-**⭐ Se este projeto te ajudou, considere dar uma estrela! ⭐**
+**Se este projeto te ajudou, considere dar uma estrela!**
 
 [![GitHub stars](https://img.shields.io/github/stars/eduardoh03/HoneyPot.svg?style=social&label=Star)](https://github.com/eduardoh03/HoneyPot)
 [![GitHub forks](https://img.shields.io/github/forks/eduardoh03/HoneyPot.svg?style=social&label=Fork)](https://github.com/eduardoh03/HoneyPot)
