@@ -542,8 +542,6 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 - Comunidade Spring Boot
 - Contribuidores do MongoDB
-- Equipe de segurança que testou o sistema
-- Todos que reportaram bugs e sugeriram melhorias
 
 ---
 
@@ -551,8 +549,8 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 **⭐ Se este projeto te ajudou, considere dar uma estrela! ⭐**
 
-[![GitHub stars](https://img.shields.io/github/stars/eduardo/honeypot.svg?style=social&label=Star)](https://github.com/eduardo/honeypot)
-[![GitHub forks](https://img.shields.io/github/forks/eduardo/honeypot.svg?style=social&label=Fork)](https://github.com/eduardo/honeypot)
-[![GitHub issues](https://img.shields.io/github/issues/eduardo/honeypot.svg)](https://github.com/eduardo/honeypot/issues)
+[![GitHub stars](https://img.shields.io/github/stars/eduardoh03/honeypot.svg?style=social&label=Star)](https://github.com/eduardoh03/HoneyPot)
+[![GitHub forks](https://img.shields.io/github/forks/eduardoh03/honeypot.svg?style=social&label=Fork)](https://github.com/eduardoh03/HoneyPot)
+[![GitHub issues](https://img.shields.io/github/issues/eduardoh03/honeypot.svg)](https://github.com/eduardoh03/HoneyPot/issues)
 
 </div>
