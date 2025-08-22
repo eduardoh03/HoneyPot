@@ -188,7 +188,6 @@ public class HoneyPotService {
             
         } catch (IOException e) {
             log.error("Erro na conexão SSH com {}: {}", clientIp, e.getMessage());
-            // Salvar log mesmo com erro
             attackLog.setUsername("erro_conexao");
             attackLog.setPassword("erro: " + e.getMessage());
             attackLog.setSuccessful(false);

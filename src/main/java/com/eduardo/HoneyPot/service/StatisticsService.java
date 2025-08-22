@@ -188,4 +188,54 @@ public class StatisticsService {
             throw new RuntimeException("Erro ao buscar estatísticas por protocolo", e);
         }
     }
+    
+    /**
+     * Busca estatísticas de ataques por hora nas últimas 24 horas
+     */
+    public Map<String, Object> getTimelineStats() {
+        try {
+            LocalDateTime endTime = LocalDateTime.now();
+            LocalDateTime startTime = endTime.minusHours(24);
+            
+            // Buscar todos os logs das últimas 24 horas
+            List<AttackLog> recentLogs = attackLogRepository.findByTimestampBetweenOrderByTimestampAsc(startTime, endTime);
+            
+            // Criar array de 24 horas
+            List<String> hours = new ArrayList<>();
+            List<Integer> counts = new ArrayList<>();
+            
+            for (int i = 23; i >= 0; i--) {
+                LocalDateTime hourTime = endTime.minusHours(i);
+                String hourLabel = String.format("%02d:00", hourTime.getHour());
+                hours.add(hourLabel);
+                
+                // Contar ataques nesta hora específica
+                LocalDateTime hourStart = hourTime.withMinute(0).withSecond(0).withNano(0);
+                LocalDateTime hourEnd = hourStart.plusHours(1);
+                
+                long attacksInHour = recentLogs.stream()
+                    .filter(log -> {
+                        LocalDateTime logTime = log.getTimestamp();
+                        return !logTime.isBefore(hourStart) && logTime.isBefore(hourEnd);
+                    })
+                    .count();
+                
+                counts.add((int) attacksInHour);
+            }
+            
+            return Map.of(
+                "hours", hours,
+                "counts", counts,
+                "totalAttacks", recentLogs.size(),
+                "period", "Últimas 24 horas",
+                "startTime", startTime,
+                "endTime", endTime,
+                "timestamp", LocalDateTime.now()
+            );
+            
+        } catch (Exception e) {
+            log.error("Erro ao buscar estatísticas de timeline: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao buscar estatísticas de timeline", e);
+        }
+    }
 }

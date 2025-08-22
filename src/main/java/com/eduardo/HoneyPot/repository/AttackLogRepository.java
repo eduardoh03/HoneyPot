@@ -32,4 +32,7 @@ public interface AttackLogRepository extends MongoRepository<AttackLog, String> 
     
     @Query(value = "{}", fields = "{'sourceIp': 1, 'timestamp': 1}")
     List<AttackLog> findAllSourceIps();
+    
+    // Buscar logs por intervalo de tempo
+    List<AttackLog> findByTimestampBetweenOrderByTimestampAsc(LocalDateTime startTime, LocalDateTime endTime);
 }

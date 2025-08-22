@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoneyPot Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>HoneyPot Dashboard</h1>
+                <div class="status-indicator">
+                    <span id="status-dot" class="status-dot"></span>
+                    <span id="status-text">Carregando...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <section class="control-panel">
+            <div class="card">
+                <h2>Painel de Controle</h2>
+                <div class="control-buttons">
+                    <button id="start-btn" class="btn btn-success">▶️ Iniciar</button>
+                    <button id="stop-btn" class="btn btn-danger">⏹️ Parar</button>
+                    <button id="restart-btn" class="btn btn-warning">🔄 Reiniciar</button>
+                    <button id="refresh-btn" class="btn btn-primary">🔄 Atualizar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <h3>Total de Ataques</h3>
+                    <span id="total-attacks" class="stat-number">-</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔒</div>
+                <div class="stat-content">
+                    <h3>Ataques SSH</h3>
+                    <span id="ssh-attacks" class="stat-number">-</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💻</div>
+                <div class="stat-content">
+                    <h3>Ataques Telnet</h3>
+                    <span id="telnet-attacks" class="stat-number">-</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-content">
+                    <h3>IPs Únicos</h3>
+                    <span id="unique-ips" class="stat-number">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="chart-card">
+                <h3>Ataques por Protocolo</h3>
+                <canvas id="protocolChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Ataques nas Últimas 24h</h3>
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Top IPs and Credentials -->
+        <section class="top-section">
+            <div class="top-card">
+                <h3>Top IPs Atacantes</h3>
+                <div id="top-ips" class="top-list">
+                    <div class="loading">Carregando...</div>
+                </div>
+            </div>
+            <div class="top-card">
+                <h3>Top Credenciais Tentadas</h3>
+                <div id="top-credentials" class="top-list">
+                    <div class="loading">Carregando...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logs Table -->
+        <section class="logs-section">
+            <div class="card">
+                <div class="logs-header">
+                    <h3>Logs de Ataques Recentes</h3>
+                    <div class="logs-controls">
+                        <select id="protocol-filter">
+                            <option value="">Todos os Protocolos</option>
+                            <option value="SSH">SSH</option>
+                            <option value="TELNET">Telnet</option>
+                        </select>
+                        <input type="text" id="ip-filter" placeholder="Filtrar por IP...">
+                        <button id="clear-logs-btn" class="btn btn-danger-outline">🗑️ Limpar Logs</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="logs-table">
+                        <thead>
+                            <tr>
+                                <th>⏰ Timestamp</th>
+                                <th>🌐 IP</th>
+                                <th>🔌 Protocolo</th>
+                                <th>👤 Usuário</th>
+                                <th>🔑 Senha</th>
+                                <th>💻 Comando</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody">
+                            <tr>
+                                <td colspan="6" class="loading">Carregando logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button id="prev-page" class="btn btn-secondary">◀️ Anterior</button>
+                    <span id="page-info">Página 1</span>
+                    <button id="next-page" class="btn btn-secondary">Próxima ▶️</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>HoneyPot SSH/Telnet Dashboard | Última atualização: <span id="last-update">-</span></p>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

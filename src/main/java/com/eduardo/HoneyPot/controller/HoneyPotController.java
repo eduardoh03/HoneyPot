@@ -641,6 +641,25 @@ public class HoneyPotController {
         }
     }
     
+    @Operation(
+        summary = "Estatísticas por Hora",
+        description = "Retorna número de ataques agrupados por hora nas últimas 24 horas",
+        tags = {"Estatísticas"}
+    )
+    @GetMapping("/stats/timeline")
+    public ResponseEntity<Map<String, Object>> getTimelineStats() {
+        try {
+            Map<String, Object> timeline = statisticsService.getTimelineStats();
+            return ResponseEntity.ok(timeline);
+        } catch (Exception e) {
+            log.error("Erro ao buscar estatísticas de timeline: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "Erro ao buscar timeline: " + e.getMessage(),
+                "timestamp", LocalDateTime.now()
+            ));
+        }
+    }
+
     // Limpar logs (cuidado!)
     @DeleteMapping("/logs")
     public ResponseEntity<Map<String, String>> clearAllLogs() {
