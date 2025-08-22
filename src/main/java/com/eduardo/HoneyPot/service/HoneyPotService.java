@@ -128,6 +128,16 @@ public class HoneyPotService {
         AttackLog attackLog = new AttackLog(clientIp, sshPort, "SSH");
         attackLog.setBanner(sshBanner);
         
+        attackLog.setUsername("conexao_ssh_" + System.currentTimeMillis());
+        attackLog.setPassword("capturado");
+        attackLog.setSuccessful(false);
+        try {
+            attackLogRepository.save(attackLog);
+            log.info("SSH [{}]: Log inicial salvo com sucesso", clientIp);
+        } catch (Exception e) {
+            log.error("SSH [{}]: ERRO ao salvar log inicial: {}", clientIp, e.getMessage());
+        }
+        
         try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
             
@@ -164,13 +174,16 @@ public class HoneyPotService {
                 }
             }
             
-            // Se não houve interação específica, salvar pelo menos a tentativa de conexão
-            if (!hasInteraction) {
-                attackLog.setUsername("tentativa_conexao");
-                attackLog.setPassword("sem_interacao");
+            if (attackLog.getPassword() == null) {
+                if (attackLog.getUsername() == null) {
+                    attackLog.setUsername("tentativa_conexao");
+                    attackLog.setPassword("sem_dados");
+                } else {
+                    attackLog.setPassword("conexao_incompleta");
+                }
                 attackLog.setSuccessful(false);
                 attackLogRepository.save(attackLog);
-                log.info("SSH [{}]: Log de tentativa de conexão salvo", clientIp);
+                log.info("SSH [{}]: Log de conexão SSH salvo - username: {}", clientIp, attackLog.getUsername());
             }
             
         } catch (IOException e) {
