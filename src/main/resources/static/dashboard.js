@@ -1,11 +1,12 @@
-// JavaScript para HoneyPot Dashboard
-class HoneyPotDashboard {
+// HoneyPot Security Dashboard - Integração com API
+class SecurityDashboard {
     constructor() {
         this.apiUrl = '/api/honeypot';
         this.currentPage = 0;
         this.pageSize = 20;
         this.refreshInterval = 30000; // 30 segundos
         this.charts = {};
+        this.isLoading = false;
         
         this.init();
     }
@@ -14,43 +15,59 @@ class HoneyPotDashboard {
         this.setupEventListeners();
         this.loadInitialData();
         this.startAutoRefresh();
+        this.showToast('Dashboard iniciado com sucesso!', 'success');
     }
 
     setupEventListeners() {
-        // Controles da honeypot
-        document.getElementById('start-btn').addEventListener('click', () => this.startHoneypot());
-        document.getElementById('stop-btn').addEventListener('click', () => this.stopHoneypot());
-        document.getElementById('restart-btn').addEventListener('click', () => this.restartHoneypot());
-        document.getElementById('refresh-btn').addEventListener('click', () => this.refreshAll());
+        // Controles do sistema
+        document.getElementById('start-btn')?.addEventListener('click', () => this.startHoneypot());
+        document.getElementById('stop-btn')?.addEventListener('click', () => this.stopHoneypot());
+        document.getElementById('restart-btn')?.addEventListener('click', () => this.restartHoneypot());
+        document.getElementById('refresh-btn')?.addEventListener('click', () => this.refreshAll());
 
         // Filtros de logs
-        document.getElementById('protocol-filter').addEventListener('change', () => this.loadLogs());
-        document.getElementById('ip-filter').addEventListener('input', () => this.debounce(() => this.loadLogs(), 500)());
-        document.getElementById('clear-logs-btn').addEventListener('click', () => this.clearLogs());
+        document.getElementById('protocol-filter')?.addEventListener('change', () => this.loadLogs());
+        document.getElementById('ip-filter')?.addEventListener('input', this.debounce(() => this.loadLogs(), 500));
+        document.getElementById('clear-logs-btn')?.addEventListener('click', () => this.clearLogs());
 
         // Paginação
-        document.getElementById('prev-page').addEventListener('click', () => this.previousPage());
-        document.getElementById('next-page').addEventListener('click', () => this.nextPage());
+        document.getElementById('prev-page')?.addEventListener('click', () => this.previousPage());
+        document.getElementById('next-page')?.addEventListener('click', () => this.nextPage());
     }
 
     async loadInitialData() {
-        await Promise.all([
-            this.loadStatus(),
-            this.loadStats(),
-            this.loadTopIps(),
-            this.loadTopCredentials(),
-            this.loadLogs(),
-            this.initCharts()
-        ]);
+        this.setLoadingState(true);
+        
+        try {
+            await Promise.all([
+                this.loadStatus(),
+                this.loadStats(),
+                this.loadTopIps(),
+                this.loadTopCredentials(),
+                this.loadLogs(),
+                this.initCharts()
+            ]);
+            
+            this.updateLastUpdate();
+        } catch (error) {
+            console.error('Erro ao carregar dados iniciais:', error);
+            this.showToast('Erro ao carregar dados do dashboard', 'error');
+        } finally {
+            this.setLoadingState(false);
+        }
     }
 
     startAutoRefresh() {
         setInterval(() => {
-            this.refreshAll();
+            if (!this.isLoading) {
+                this.refreshAll();
+            }
         }, this.refreshInterval);
     }
 
     async refreshAll() {
+        if (this.isLoading) return;
+        
         try {
             await Promise.all([
                 this.loadStatus(),
@@ -60,11 +77,10 @@ class HoneyPotDashboard {
                 this.loadLogs(),
                 this.updateCharts()
             ]);
+            
             this.updateLastUpdate();
-            this.showToast('Dashboard atualizado com sucesso!', 'success');
         } catch (error) {
             console.error('Erro ao atualizar dashboard:', error);
-            this.showToast('Erro ao atualizar dados', 'error');
         }
     }
 
@@ -89,6 +105,7 @@ class HoneyPotDashboard {
         }
     }
 
+    // Status do Sistema
     async loadStatus() {
         try {
             const status = await this.apiCall('/status');
@@ -96,38 +113,77 @@ class HoneyPotDashboard {
             const statusText = document.getElementById('status-text');
             
             if (status.running) {
-                statusDot.className = 'status-dot online';
-                statusText.textContent = 'Online - Capturando ataques';
+                statusDot?.classList.remove('offline');
+                statusDot?.classList.add('online');
+                if (statusText) statusText.textContent = 'Sistema Online';
+                
+                // Atualizar indicador de status
+                const statusSubtitle = document.querySelector('.status-subtitle');
+                if (statusSubtitle) statusSubtitle.textContent = 'Ativo';
             } else {
-                statusDot.className = 'status-dot offline';
-                statusText.textContent = 'Offline';
+                statusDot?.classList.remove('online');
+                statusDot?.classList.add('offline');
+                if (statusText) statusText.textContent = 'Sistema Offline';
+                
+                const statusSubtitle = document.querySelector('.status-subtitle');
+                if (statusSubtitle) statusSubtitle.textContent = 'Parado';
             }
 
             // Atualizar botões
-            document.getElementById('start-btn').disabled = status.running;
-            document.getElementById('stop-btn').disabled = !status.running;
+            this.updateControlButtons(status.running);
         } catch (error) {
             console.error('Erro ao carregar status:', error);
-            document.getElementById('status-text').textContent = 'Erro de conexão';
+            const statusText = document.getElementById('status-text');
+            if (statusText) statusText.textContent = 'Erro de Conexão';
         }
     }
 
+    updateControlButtons(isRunning) {
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        
+        if (startBtn) startBtn.disabled = isRunning;
+        if (stopBtn) stopBtn.disabled = !isRunning;
+    }
+
+    // Estatísticas
     async loadStats() {
         try {
             const stats = await this.apiCall('/stats');
             
-            document.getElementById('total-attacks').textContent = stats.totalLogs || 0;
-            document.getElementById('ssh-attacks').textContent = stats.sshLogs || 0;
-            document.getElementById('telnet-attacks').textContent = stats.telnetLogs || 0;
+            document.getElementById('total-attacks').textContent = stats.totalLogs || '0';
+            document.getElementById('ssh-attacks').textContent = stats.sshLogs || '0';
+            document.getElementById('telnet-attacks').textContent = stats.telnetLogs || '0';
             
-            // Calcular IPs únicos (aproximação baseada nos dados disponíveis)
+            // Calcular IPs únicos (aproximação)
             const uniqueIps = Math.max(1, Math.floor((stats.totalLogs || 0) * 0.3));
-            document.getElementById('unique-ips').textContent = uniqueIps;
+            document.getElementById('unique-ips').textContent = uniqueIps.toString();
+            
+            // Animar números
+            this.animateNumbers();
         } catch (error) {
             console.error('Erro ao carregar estatísticas:', error);
+            this.setStatsError();
         }
     }
 
+    setStatsError() {
+        ['total-attacks', 'ssh-attacks', 'telnet-attacks', 'unique-ips'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = 'Erro';
+        });
+    }
+
+    animateNumbers() {
+        document.querySelectorAll('.stat-number').forEach(element => {
+            element.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 200);
+        });
+    }
+
+    // Top IPs
     async loadTopIps() {
         try {
             const data = await this.apiCall('/stats/top-ips?limit=10');
@@ -137,21 +193,27 @@ class HoneyPotDashboard {
                 container.innerHTML = data.topIps.map((item, index) => `
                     <div class="top-item">
                         <div class="top-item-info">
-                            <div class="top-item-label">${item.ip}</div>
-                            <div class="top-item-detail">Último ataque: ${this.formatDateTime(item.lastAttack)}</div>
+                            <div class="top-item-label">
+                                <span class="rank">#${index + 1}</span>
+                                <code>${item.ip}</code>
+                            </div>
+                            <div class="top-item-detail">
+                                Último ataque: ${this.formatDateTime(item.lastAttack)}
+                            </div>
                         </div>
                         <div class="top-item-count">${item.count}</div>
                     </div>
                 `).join('');
             } else {
-                container.innerHTML = '<div class="loading">Nenhum ataque registrado</div>';
+                container.innerHTML = '<div class="loading">Nenhum ataque registrado ainda</div>';
             }
         } catch (error) {
             console.error('Erro ao carregar top IPs:', error);
-            document.getElementById('top-ips').innerHTML = '<div class="loading">Erro ao carregar dados</div>';
+            document.getElementById('top-ips').innerHTML = '<div class="loading error">Erro ao carregar dados</div>';
         }
     }
 
+    // Top Credenciais
     async loadTopCredentials() {
         try {
             const data = await this.apiCall('/stats/top-credentials?limit=10');
@@ -161,25 +223,29 @@ class HoneyPotDashboard {
                 container.innerHTML = data.topCredentials.map((item, index) => `
                     <div class="top-item">
                         <div class="top-item-info">
-                            <div class="top-item-label">${item.username} / ${item.password}</div>
-                            <div class="top-item-detail">Credencial tentada</div>
+                            <div class="top-item-label">
+                                <span class="rank">#${index + 1}</span>
+                                <code>${this.truncate(item.username, 12)}:${this.truncate(item.password, 12)}</code>
+                            </div>
+                            <div class="top-item-detail">Tentativa de credencial</div>
                         </div>
                         <div class="top-item-count">${item.count}</div>
                     </div>
                 `).join('');
             } else {
-                container.innerHTML = '<div class="loading">Nenhuma credencial registrada</div>';
+                container.innerHTML = '<div class="loading">Nenhuma credencial registrada ainda</div>';
             }
         } catch (error) {
             console.error('Erro ao carregar top credenciais:', error);
-            document.getElementById('top-credentials').innerHTML = '<div class="loading">Erro ao carregar dados</div>';
+            document.getElementById('top-credentials').innerHTML = '<div class="loading error">Erro ao carregar dados</div>';
         }
     }
 
+    // Logs
     async loadLogs() {
         try {
-            const protocolFilter = document.getElementById('protocol-filter').value;
-            const ipFilter = document.getElementById('ip-filter').value;
+            const protocolFilter = document.getElementById('protocol-filter')?.value || '';
+            const ipFilter = document.getElementById('ip-filter')?.value || '';
             
             let url = `/logs?page=${this.currentPage}&size=${this.pageSize}`;
             
@@ -187,9 +253,9 @@ class HoneyPotDashboard {
             const tbody = document.getElementById('logs-tbody');
             
             if (data.logs && data.logs.length > 0) {
-                // Filtrar logs no frontend se necessário
                 let filteredLogs = data.logs;
                 
+                // Aplicar filtros no frontend
                 if (protocolFilter) {
                     filteredLogs = filteredLogs.filter(log => log.protocol === protocolFilter);
                 }
@@ -199,24 +265,35 @@ class HoneyPotDashboard {
                 }
                 
                 tbody.innerHTML = filteredLogs.map(log => `
-                    <tr>
-                        <td>${this.formatDateTime(log.timestamp)}</td>
-                        <td><code>${log.sourceIp}</code></td>
-                        <td><span class="protocol-badge protocol-${log.protocol.toLowerCase()}">${log.protocol}</span></td>
-                        <td><code>${this.truncate(log.username || '-', 20)}</code></td>
-                        <td><code>${this.truncate(log.password || '-', 20)}</code></td>
-                        <td><code>${this.truncate(log.command || '-', 30)}</code></td>
+                    <tr class="log-entry" data-protocol="${log.protocol.toLowerCase()}">
+                        <td class="timestamp">${this.formatDateTime(log.timestamp)}</td>
+                        <td class="ip-address"><code>${log.sourceIp}</code></td>
+                        <td class="protocol">
+                            <span class="protocol-badge protocol-${log.protocol.toLowerCase()}">
+                                ${log.protocol}
+                            </span>
+                        </td>
+                        <td class="username"><code>${this.truncate(log.username || '-', 15)}</code></td>
+                        <td class="password"><code>${this.truncate(log.password || '-', 15)}</code></td>
+                        <td class="command"><code>${this.truncate(log.command || '-', 20)}</code></td>
                     </tr>
                 `).join('');
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" class="loading">Nenhum log encontrado</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="loading">
+                            ${protocolFilter || ipFilter ? 'Nenhum registro encontrado com os filtros aplicados' : 'Nenhum registro encontrado'}
+                        </td>
+                    </tr>
+                `;
             }
             
-            // Atualizar paginação
             this.updatePagination(data);
         } catch (error) {
             console.error('Erro ao carregar logs:', error);
-            document.getElementById('logs-tbody').innerHTML = '<tr><td colspan="6" class="loading">Erro ao carregar logs</td></tr>';
+            document.getElementById('logs-tbody').innerHTML = `
+                <tr><td colspan="6" class="loading error">Erro ao carregar registros</td></tr>
+            `;
         }
     }
 
@@ -225,9 +302,12 @@ class HoneyPotDashboard {
         const prevBtn = document.getElementById('prev-page');
         const nextBtn = document.getElementById('next-page');
         
-        pageInfo.textContent = `Página ${this.currentPage + 1} de ${data.totalPages || 1}`;
-        prevBtn.disabled = this.currentPage === 0;
-        nextBtn.disabled = this.currentPage >= (data.totalPages - 1);
+        if (pageInfo) {
+            pageInfo.textContent = `Página ${this.currentPage + 1} de ${data.totalPages || 1}`;
+        }
+        
+        if (prevBtn) prevBtn.disabled = this.currentPage === 0;
+        if (nextBtn) nextBtn.disabled = this.currentPage >= (data.totalPages - 1);
     }
 
     previousPage() {
@@ -242,20 +322,27 @@ class HoneyPotDashboard {
         this.loadLogs();
     }
 
+    // Gráficos
     async initCharts() {
-        await this.createProtocolChart();
-        await this.createTimelineChart();
+        await Promise.all([
+            this.createProtocolChart(),
+            this.createTimelineChart()
+        ]);
     }
 
     async updateCharts() {
-        await this.updateProtocolChart();
-        await this.updateTimelineChart();
+        await Promise.all([
+            this.updateProtocolChart(),
+            this.updateTimelineChart()
+        ]);
     }
 
     async createProtocolChart() {
         try {
             const stats = await this.apiCall('/stats');
-            const ctx = document.getElementById('protocolChart').getContext('2d');
+            const ctx = document.getElementById('protocolChart')?.getContext('2d');
+            
+            if (!ctx) return;
             
             this.charts.protocol = new Chart(ctx, {
                 type: 'doughnut',
@@ -263,15 +350,35 @@ class HoneyPotDashboard {
                     labels: ['SSH', 'Telnet'],
                     datasets: [{
                         data: [stats.sshLogs || 0, stats.telnetLogs || 0],
-                        backgroundColor: ['#ff6b35', '#f7931e'],
-                        borderWidth: 0
+                        backgroundColor: ['#2563eb', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverBorderWidth: 2,
+                        hoverBorderColor: '#ffffff'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
                         }
                     }
                 }
@@ -284,32 +391,53 @@ class HoneyPotDashboard {
     async createTimelineChart() {
         try {
             const timelineData = await this.apiCall('/stats/timeline');
-            const ctx = document.getElementById('timelineChart').getContext('2d');
+            const ctx = document.getElementById('timelineChart')?.getContext('2d');
+            
+            if (!ctx) return;
             
             this.charts.timeline = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: timelineData.hours || [],
                     datasets: [{
-                        label: 'Ataques por Hora',
+                        label: 'Ataques',
                         data: timelineData.counts || [],
-                        borderColor: '#ff6b35',
-                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
                         tension: 0.4,
                         fill: true,
-                        pointBackgroundColor: '#ff6b35',
+                        pointBackgroundColor: '#2563eb',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
-                        pointRadius: 4
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 12,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
                             }
                         }
                     },
@@ -333,38 +461,6 @@ class HoneyPotDashboard {
             });
         } catch (error) {
             console.error('Erro ao criar gráfico de timeline:', error);
-            // Fallback para dados vazios se houver erro
-            const ctx = document.getElementById('timelineChart').getContext('2d');
-            const hours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-            const data = Array.from({length: 24}, () => 0);
-            
-            this.charts.timeline = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: hours,
-                    datasets: [{
-                        label: 'Ataques por Hora',
-                        data: data,
-                        borderColor: '#ff6b35',
-                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
         }
     }
 
@@ -373,7 +469,7 @@ class HoneyPotDashboard {
             try {
                 const stats = await this.apiCall('/stats');
                 this.charts.protocol.data.datasets[0].data = [stats.sshLogs || 0, stats.telnetLogs || 0];
-                this.charts.protocol.update();
+                this.charts.protocol.update('none');
             } catch (error) {
                 console.error('Erro ao atualizar gráfico de protocolos:', error);
             }
@@ -386,21 +482,22 @@ class HoneyPotDashboard {
                 const timelineData = await this.apiCall('/stats/timeline');
                 this.charts.timeline.data.labels = timelineData.hours || [];
                 this.charts.timeline.data.datasets[0].data = timelineData.counts || [];
-                this.charts.timeline.update();
+                this.charts.timeline.update('none');
             } catch (error) {
                 console.error('Erro ao atualizar gráfico de timeline:', error);
             }
         }
     }
 
+    // Controles do Sistema
     async startHoneypot() {
         try {
             this.setButtonLoading('start-btn', true);
             await this.apiCall('/start', { method: 'POST' });
-            this.showToast('Honeypot iniciada com sucesso!', 'success');
+            this.showToast('Sistema iniciado com sucesso!', 'success');
             await this.loadStatus();
         } catch (error) {
-            this.showToast('Erro ao iniciar honeypot', 'error');
+            this.showToast('Erro ao iniciar sistema', 'error');
         } finally {
             this.setButtonLoading('start-btn', false);
         }
@@ -410,10 +507,10 @@ class HoneyPotDashboard {
         try {
             this.setButtonLoading('stop-btn', true);
             await this.apiCall('/stop', { method: 'POST' });
-            this.showToast('Honeypot parada com sucesso!', 'success');
+            this.showToast('Sistema parado com sucesso!', 'success');
             await this.loadStatus();
         } catch (error) {
-            this.showToast('Erro ao parar honeypot', 'error');
+            this.showToast('Erro ao parar sistema', 'error');
         } finally {
             this.setButtonLoading('stop-btn', false);
         }
@@ -423,68 +520,111 @@ class HoneyPotDashboard {
         try {
             this.setButtonLoading('restart-btn', true);
             await this.apiCall('/restart', { method: 'POST' });
-            this.showToast('Honeypot reiniciada com sucesso!', 'success');
+            this.showToast('Sistema reiniciado com sucesso!', 'success');
             await this.loadStatus();
         } catch (error) {
-            this.showToast('Erro ao reiniciar honeypot', 'error');
+            this.showToast('Erro ao reiniciar sistema', 'error');
         } finally {
             this.setButtonLoading('restart-btn', false);
         }
     }
 
     async clearLogs() {
-        if (confirm('Tem certeza que deseja limpar todos os logs? Esta ação não pode ser desfeita.')) {
+        if (confirm('Tem certeza que deseja limpar todos os registros? Esta ação não pode ser desfeita.')) {
             try {
                 await this.apiCall('/logs', { method: 'DELETE' });
-                this.showToast('Logs limpos com sucesso!', 'success');
+                this.showToast('Registros limpos com sucesso!', 'success');
                 await this.refreshAll();
             } catch (error) {
-                this.showToast('Erro ao limpar logs', 'error');
+                this.showToast('Erro ao limpar registros', 'error');
             }
         }
     }
 
+    // Utilidades
     setButtonLoading(buttonId, loading) {
         const button = document.getElementById(buttonId);
+        if (!button) return;
+        
         button.disabled = loading;
+        
         if (loading) {
-            button.style.opacity = '0.6';
+            button.classList.add('loading');
+            const icon = button.querySelector('.btn-icon');
+            if (icon) icon.textContent = '⏳';
         } else {
-            button.style.opacity = '1';
+            button.classList.remove('loading');
+            // Restaurar ícones originais
+            const icon = button.querySelector('.btn-icon');
+            if (icon && buttonId === 'start-btn') icon.textContent = '▶';
+            if (icon && buttonId === 'stop-btn') icon.textContent = '⏹';
+            if (icon && buttonId === 'restart-btn') icon.textContent = '🔄';
+        }
+    }
+
+    setLoadingState(loading) {
+        this.isLoading = loading;
+        
+        if (loading) {
+            document.body.classList.add('loading');
+        } else {
+            document.body.classList.remove('loading');
         }
     }
 
     showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
+        const container = document.getElementById('toast-container') || this.createToastContainer();
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
+        toast.className = `toast toast-${type}`;
+        
+        const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-message">${message}</div>
+        `;
         
         container.appendChild(toast);
         
+        // Auto remove
         setTimeout(() => {
-            toast.remove();
-        }, 5000);
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
     }
 
     formatDateTime(dateString) {
         try {
             const date = new Date(dateString);
-            return date.toLocaleString('pt-BR');
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         } catch (error) {
             return dateString;
         }
     }
 
     truncate(str, maxLength) {
-        if (str.length > maxLength) {
-            return str.substring(0, maxLength) + '...';
-        }
-        return str;
+        if (!str || str.length <= maxLength) return str;
+        return str.substring(0, maxLength) + '...';
     }
 
     updateLastUpdate() {
-        document.getElementById('last-update').textContent = new Date().toLocaleString('pt-BR');
+        const element = document.getElementById('last-update');
+        if (element) {
+            element.textContent = new Date().toLocaleString('pt-BR');
+        }
     }
 
     debounce(func, wait) {
@@ -502,5 +642,5 @@ class HoneyPotDashboard {
 
 // Inicializar dashboard quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
-    new HoneyPotDashboard();
+    new SecurityDashboard();
 });

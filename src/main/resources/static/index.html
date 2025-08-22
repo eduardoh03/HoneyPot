@@ -3,20 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HoneyPot Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+    <title>HoneyPot Security Dashboard</title>
+          <link rel="stylesheet" href="styles.css">
+      <link rel="stylesheet" href="dashboard-integration.css">
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1>HoneyPot Dashboard</h1>
+                <div class="header-left">
+                    <div class="header-icon">🛡️</div>
+                    <div class="header-text">
+                        <h1>Security Dashboard</h1>
+                        <p>Honeypot Monitoring System</p>
+                    </div>
+                </div>
                 <div class="status-indicator">
                     <span id="status-dot" class="status-dot"></span>
-                    <span id="status-text">Carregando...</span>
+                    <div class="status-text">
+                        <span id="status-text">Carregando...</span>
+                        <span class="status-subtitle">Sistema</span>
+                    </div>
                 </div>
             </div>
         </header>
@@ -24,12 +34,27 @@
         <!-- Control Panel -->
         <section class="control-panel">
             <div class="card">
-                <h2>Painel de Controle</h2>
+                <div class="card-header">
+                    <h2>Controle do Sistema</h2>
+                    <p>Gerencie o estado da honeypot</p>
+                </div>
                 <div class="control-buttons">
-                    <button id="start-btn" class="btn btn-success">▶️ Iniciar</button>
-                    <button id="stop-btn" class="btn btn-danger">⏹️ Parar</button>
-                    <button id="restart-btn" class="btn btn-warning">🔄 Reiniciar</button>
-                    <button id="refresh-btn" class="btn btn-primary">🔄 Atualizar</button>
+                    <button id="start-btn" class="btn btn-success">
+                        <span class="btn-icon">▶</span>
+                        Iniciar
+                    </button>
+                    <button id="stop-btn" class="btn btn-danger">
+                        <span class="btn-icon">⏹</span>
+                        Parar
+                    </button>
+                    <button id="restart-btn" class="btn btn-warning">
+                        <span class="btn-icon">🔄</span>
+                        Reiniciar
+                    </button>
+                    <button id="refresh-btn" class="btn btn-primary">
+                        <span class="btn-icon">↻</span>
+                        Atualizar
+                    </button>
                 </div>
             </div>
         </section>
@@ -37,31 +62,58 @@
         <!-- Statistics Cards -->
         <section class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">📊</div>
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3v18h18"/>
+                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                    </svg>
+                </div>
                 <div class="stat-content">
                     <h3>Total de Ataques</h3>
                     <span id="total-attacks" class="stat-number">-</span>
+                    <span class="stat-label">registrados</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🔒</div>
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <circle cx="12" cy="16" r="1"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
                 <div class="stat-content">
                     <h3>Ataques SSH</h3>
                     <span id="ssh-attacks" class="stat-number">-</span>
+                    <span class="stat-label">tentativas</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">💻</div>
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </div>
                 <div class="stat-content">
                     <h3>Ataques Telnet</h3>
                     <span id="telnet-attacks" class="stat-number">-</span>
+                    <span class="stat-label">tentativas</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🌐</div>
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                </div>
                 <div class="stat-content">
                     <h3>IPs Únicos</h3>
                     <span id="unique-ips" class="stat-number">-</span>
+                    <span class="stat-label">endereços</span>
                 </div>
             </div>
         </section>
@@ -69,27 +121,43 @@
         <!-- Charts Section -->
         <section class="charts-section">
             <div class="chart-card">
-                <h3>Ataques por Protocolo</h3>
-                <canvas id="protocolChart"></canvas>
+                <div class="card-header">
+                    <h3>Distribuição por Protocolo</h3>
+                    <p>Proporção de ataques por tipo</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="protocolChart"></canvas>
+                </div>
             </div>
             <div class="chart-card">
-                <h3>Ataques nas Últimas 24h</h3>
-                <canvas id="timelineChart"></canvas>
+                <div class="card-header">
+                    <h3>Atividade nas Últimas 24h</h3>
+                    <p>Timeline de ataques por hora</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
             </div>
         </section>
 
         <!-- Top IPs and Credentials -->
         <section class="top-section">
             <div class="top-card">
-                <h3>Top IPs Atacantes</h3>
+                <div class="card-header">
+                    <h3>IPs Mais Ativos</h3>
+                    <p>Endereços com maior atividade</p>
+                </div>
                 <div id="top-ips" class="top-list">
-                    <div class="loading">Carregando...</div>
+                    <div class="loading">Carregando dados...</div>
                 </div>
             </div>
             <div class="top-card">
-                <h3>Top Credenciais Tentadas</h3>
+                <div class="card-header">
+                    <h3>Credenciais Mais Tentadas</h3>
+                    <p>Combinações usuário/senha mais comuns</p>
+                </div>
                 <div id="top-credentials" class="top-list">
-                    <div class="loading">Carregando...</div>
+                    <div class="loading">Carregando dados...</div>
                 </div>
             </div>
         </section>
@@ -98,47 +166,62 @@
         <section class="logs-section">
             <div class="card">
                 <div class="logs-header">
-                    <h3>Logs de Ataques Recentes</h3>
+                    <div class="card-header">
+                        <h3>Registro de Ataques</h3>
+                        <p>Histórico detalhado das tentativas de acesso</p>
+                    </div>
                     <div class="logs-controls">
-                        <select id="protocol-filter">
+                        <select id="protocol-filter" class="filter-select">
                             <option value="">Todos os Protocolos</option>
                             <option value="SSH">SSH</option>
                             <option value="TELNET">Telnet</option>
                         </select>
-                        <input type="text" id="ip-filter" placeholder="Filtrar por IP...">
-                        <button id="clear-logs-btn" class="btn btn-danger-outline">🗑️ Limpar Logs</button>
+                        <input type="text" id="ip-filter" class="filter-input" placeholder="Filtrar por IP...">
+                        <button id="clear-logs-btn" class="btn btn-danger-outline">
+                            <span class="btn-icon">🗑</span>
+                            Limpar
+                        </button>
                     </div>
                 </div>
                 <div class="table-container">
                     <table id="logs-table">
                         <thead>
                             <tr>
-                                <th>⏰ Timestamp</th>
-                                <th>🌐 IP</th>
-                                <th>🔌 Protocolo</th>
-                                <th>👤 Usuário</th>
-                                <th>🔑 Senha</th>
-                                <th>💻 Comando</th>
+                                <th>Timestamp</th>
+                                <th>Endereço IP</th>
+                                <th>Protocolo</th>
+                                <th>Usuário</th>
+                                <th>Senha</th>
+                                <th>Comando</th>
                             </tr>
                         </thead>
                         <tbody id="logs-tbody">
                             <tr>
-                                <td colspan="6" class="loading">Carregando logs...</td>
+                                <td colspan="6" class="loading">Carregando registros...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="pagination">
-                    <button id="prev-page" class="btn btn-secondary">◀️ Anterior</button>
-                    <span id="page-info">Página 1</span>
-                    <button id="next-page" class="btn btn-secondary">Próxima ▶️</button>
+                    <button id="prev-page" class="btn btn-secondary">
+                        <span class="btn-icon">←</span>
+                        Anterior
+                    </button>
+                    <span id="page-info" class="page-info">Página 1</span>
+                    <button id="next-page" class="btn btn-secondary">
+                        Próxima
+                        <span class="btn-icon">→</span>
+                    </button>
                 </div>
             </div>
         </section>
 
         <!-- Footer -->
         <footer class="footer">
-            <p>HoneyPot SSH/Telnet Dashboard | Última atualização: <span id="last-update">-</span></p>
+            <div class="footer-content">
+                <p>HoneyPot Security Dashboard</p>
+                <p>Última atualização: <span id="last-update">-</span></p>
+            </div>
         </footer>
     </div>
 
