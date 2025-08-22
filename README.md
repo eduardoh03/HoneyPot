@@ -549,8 +549,9 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 **⭐ Se este projeto te ajudou, considere dar uma estrela! ⭐**
 
-[![GitHub stars](https://img.shields.io/github/stars/eduardoh03/honeypot.svg?style=social&label=Star)](https://github.com/eduardoh03/HoneyPot)
-[![GitHub forks](https://img.shields.io/github/forks/eduardoh03/honeypot.svg?style=social&label=Fork)](https://github.com/eduardoh03/HoneyPot)
-[![GitHub issues](https://img.shields.io/github/issues/eduardoh03/honeypot.svg)](https://github.com/eduardoh03/HoneyPot/issues)
+[![GitHub stars](https://img.shields.io/github/stars/eduardoh03/HoneyPot.svg?style=social&label=Star)](https://github.com/eduardoh03/HoneyPot)
+[![GitHub forks](https://img.shields.io/github/forks/eduardoh03/HoneyPot.svg?style=social&label=Fork)](https://github.com/eduardoh03/HoneyPot)
+[![GitHub issues](https://img.shields.io/github/issues/eduardoh03/HoneyPot.svg)](https://github.com/eduardoh03/HoneyPot/issues)
 
 </div>
+
