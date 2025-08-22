@@ -339,7 +339,6 @@ services:
 ### **FASE 2: Arquitetura (CONCLUÍDA)**
 - [x] Refatoração para Clean Architecture
 - [x] Services especializados
-- [x] Controller limpo
 - [x] Tratamento de erros centralizado
 - [x] Logs estruturados
 
