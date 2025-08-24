@@ -240,7 +240,7 @@ public class HoneyPotService {
                         log.info("TELNET COMMAND [{}]: {}", clientIp, line);
                         
                         String command = line.trim();
-                        attackLog.setCommand(command);
+                        attackLog.addCommand(command);
                         attackLogRepository.save(attackLog);
                         
                         switch (command.toLowerCase()) {

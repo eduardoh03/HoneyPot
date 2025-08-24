@@ -190,14 +190,15 @@
                                 <th>Timestamp</th>
                                 <th>Endereço IP</th>
                                 <th>Protocolo</th>
-                                <th>Usuário</th>
-                                <th>Senha</th>
-                                <th>Comando</th>
+                                                        <th>Usuário</th>
+                        <th>Senha</th>
+                        <th>Último Comando</th>
+                        <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="logs-tbody">
                             <tr>
-                                <td colspan="6" class="loading">Carregando registros...</td>
+                                <td colspan="7" class="loading">Carregando registros...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -226,7 +227,31 @@
     </div>
 
     <!-- Toast Notifications -->
-    <div id="toast-container"></div>
+    <div id="toast-container">    </div>
+
+    <!-- Modal para exibir comandos executados -->
+    <div id="commands-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Comandos Executados</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="session-info">
+                    <p><strong>IP:</strong> <span id="modal-ip"></span></p>
+                    <p><strong>Protocolo:</strong> <span id="modal-protocol"></span></p>
+                    <p><strong>Sessão:</strong> <span id="modal-session"></span></p>
+                    <p><strong>Total de comandos:</strong> <span id="modal-command-count"></span></p>
+                </div>
+                <div class="commands-list">
+                    <h4>Lista de Comandos:</h4>
+                    <div id="commands-container">
+                        <!-- Comandos serão inseridos aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="dashboard.js"></script>
 </body>

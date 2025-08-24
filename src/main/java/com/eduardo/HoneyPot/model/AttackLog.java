@@ -8,6 +8,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -32,7 +34,7 @@ public class AttackLog {
     
     private String password;
     
-    private String command;
+    private List<CommandExecution> commands = new ArrayList<>();
     
     private String sessionId;
     
@@ -46,5 +48,30 @@ public class AttackLog {
         this.port = port;
         this.protocol = protocol;
         this.sessionId = java.util.UUID.randomUUID().toString();
+        this.commands = new ArrayList<>();
+    }
+    
+    /**
+     * Adiciona um novo comando à lista de comandos executados
+     */
+    public void addCommand(String command) {
+        this.commands.add(new CommandExecution(command));
+    }
+    
+    /**
+     * Retorna o comando mais recente executado
+     */
+    public String getLatestCommand() {
+        if (commands == null || commands.isEmpty()) {
+            return null;
+        }
+        return commands.get(commands.size() - 1).getCommand();
+    }
+    
+    /**
+     * Retorna o número total de comandos executados
+     */
+    public int getCommandCount() {
+        return commands != null ? commands.size() : 0;
     }
 }

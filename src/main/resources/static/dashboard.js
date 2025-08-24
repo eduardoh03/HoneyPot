@@ -259,6 +259,10 @@ class SecurityDashboard {
             let url = `/logs?page=${this.currentPage}&size=${this.pageSize}`;
             
             const data = await this.apiCall(url);
+            
+            // Armazenar logs atuais para uso no modal
+            this.currentLogs = data.logs || [];
+            
             const tbody = document.getElementById('logs-tbody');
             
             if (data.logs && data.logs.length > 0) {
@@ -284,13 +288,20 @@ class SecurityDashboard {
                         </td>
                         <td class="username"><code>${this.truncate(log.username || '-', 15)}</code></td>
                         <td class="password"><code>${this.truncate(log.password || '-', 15)}</code></td>
-                        <td class="command"><code>${this.truncate(log.command || '-', 20)}</code></td>
+                        <td class="command"><code>${this.truncate(log.commands && log.commands.length > 0 ? log.commands[log.commands.length - 1].command : '-', 20)}</code></td>
+                        <td class="actions">
+                            <button class="btn-view-commands" 
+                                    onclick="dashboard.showCommandsModal('${log.id}')" 
+                                    ${!log.commands || log.commands.length === 0 ? 'disabled' : ''}>
+                                📋 Ver Comandos (${log.commands ? log.commands.length : 0})
+                            </button>
+                        </td>
                     </tr>
                 `).join('');
             } else {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="loading">
+                        <td colspan="7" class="loading">
                             ${protocolFilter || ipFilter ? 'Nenhum registro encontrado com os filtros aplicados' : 'Nenhum registro encontrado'}
                         </td>
                     </tr>
@@ -301,7 +312,7 @@ class SecurityDashboard {
         } catch (error) {
             console.error('Erro ao carregar logs:', error);
             document.getElementById('logs-tbody').innerHTML = `
-                <tr><td colspan="6" class="loading error">Erro ao carregar registros</td></tr>
+                <tr><td colspan="7" class="loading error">Erro ao carregar registros</td></tr>
             `;
         }
     }
@@ -647,9 +658,79 @@ class SecurityDashboard {
             timeout = setTimeout(later, wait);
         };
     }
+
+    // Modal de comandos
+    showCommandsModal(logId) {
+        // Encontrar o log específico nos dados carregados
+        const log = this.currentLogs?.find(l => l.id === logId);
+        if (!log) {
+            this.showToast('Log não encontrado', 'error');
+            return;
+        }
+
+        // Preencher informações da sessão
+        document.getElementById('modal-ip').textContent = log.sourceIp || '-';
+        document.getElementById('modal-protocol').textContent = log.protocol || '-';
+        document.getElementById('modal-session').textContent = log.sessionId || '-';
+        document.getElementById('modal-command-count').textContent = log.commands ? log.commands.length : 0;
+
+        // Preencher lista de comandos
+        const commandsContainer = document.getElementById('commands-container');
+        if (!log.commands || log.commands.length === 0) {
+            commandsContainer.innerHTML = '<div class="no-commands">Nenhum comando executado nesta sessão</div>';
+        } else {
+            commandsContainer.innerHTML = log.commands.map((cmd, index) => `
+                <div class="command-item">
+                    <div class="command-text">${this.escapeHtml(cmd.command || 'comando vazio')}</div>
+                    <div class="command-timestamp">${this.formatDateTime(cmd.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Mostrar modal
+        const modal = document.getElementById('commands-modal');
+        modal.classList.add('show');
+
+        // Configurar eventos de fechamento
+        this.setupModalEvents();
+    }
+
+    setupModalEvents() {
+        const modal = document.getElementById('commands-modal');
+        const closeBtn = modal.querySelector('.modal-close');
+
+        // Fechar ao clicar no X
+        closeBtn.onclick = () => this.closeCommandsModal();
+
+        // Fechar ao clicar fora do modal
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                this.closeCommandsModal();
+            }
+        };
+
+        // Fechar com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                this.closeCommandsModal();
+            }
+        });
+    }
+
+    closeCommandsModal() {
+        const modal = document.getElementById('commands-modal');
+        modal.classList.remove('show');
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 }
 
 // Inicializar dashboard quando a página carregar
+let dashboard;
 document.addEventListener('DOMContentLoaded', () => {
-    new SecurityDashboard();
+    dashboard = new SecurityDashboard();
 });
