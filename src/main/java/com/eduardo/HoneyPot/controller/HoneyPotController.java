@@ -4,6 +4,7 @@ import com.eduardo.HoneyPot.model.AttackLog;
 import com.eduardo.HoneyPot.service.StatisticsService;
 import com.eduardo.HoneyPot.service.LogService;
 import com.eduardo.HoneyPot.service.ManagementService;
+import com.eduardo.HoneyPot.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,6 +37,9 @@ public class HoneyPotController {
     
     @Autowired
     private ManagementService managementService;
+    
+    @Autowired
+    private NotificationService notificationService;
     
     // Controle da honeypot
     @Operation(
@@ -689,6 +693,137 @@ public class HoneyPotController {
             log.error("Erro ao limpar logs: {}", e.getMessage());
             return ResponseEntity.internalServerError()
                 .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+    
+    // ========================================
+    // ENDPOINTS DE NOTIFICAÇÕES
+    // ========================================
+    
+    @Operation(
+        summary = "Listar Notificações",
+        description = "Lista todas as notificações do sistema com paginação",
+        tags = {"Notificações"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Notificações listadas com sucesso"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @GetMapping("/notifications")
+    public ResponseEntity<Map<String, Object>> getNotifications(
+            @Parameter(description = "Página atual (0-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size) {
+        try {
+            Map<String, Object> notifications = notificationService.getAllNotifications(page, size);
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            log.error("Erro ao buscar notificações: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Erro ao buscar notificações: " + e.getMessage()));
+        }
+    }
+    
+    @Operation(
+        summary = "Notificações Não Lidas",
+        description = "Lista todas as notificações não lidas do sistema",
+        tags = {"Notificações"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Notificações não lidas listadas com sucesso"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @GetMapping("/notifications/unread")
+    public ResponseEntity<List<com.eduardo.HoneyPot.model.Notification>> getUnreadNotifications() {
+        try {
+            List<com.eduardo.HoneyPot.model.Notification> notifications = notificationService.getUnreadNotifications();
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            log.error("Erro ao buscar notificações não lidas: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @Operation(
+        summary = "Notificações de Alta Prioridade",
+        description = "Lista notificações de alta prioridade (não lidas)",
+        tags = {"Notificações"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Notificações de alta prioridade listadas com sucesso"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @GetMapping("/notifications/high-priority")
+    public ResponseEntity<List<com.eduardo.HoneyPot.model.Notification>> getHighPriorityNotifications() {
+        try {
+            List<com.eduardo.HoneyPot.model.Notification> notifications = notificationService.getHighPriorityNotifications();
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            log.error("Erro ao buscar notificações de alta prioridade: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @Operation(
+        summary = "Estatísticas das Notificações",
+        description = "Retorna estatísticas gerais das notificações do sistema",
+        tags = {"Notificações"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Estatísticas retornadas com sucesso"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @GetMapping("/notifications/stats")
+    public ResponseEntity<Map<String, Object>> getNotificationStats() {
+        try {
+            Map<String, Object> stats = notificationService.getNotificationStats();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            log.error("Erro ao buscar estatísticas das notificações: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Erro ao buscar estatísticas: " + e.getMessage()));
+        }
+    }
+    
+    @Operation(
+        summary = "Marcar Notificação como Lida",
+        description = "Marca uma notificação específica como lida",
+        tags = {"Notificações"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Notificação marcada como lida com sucesso"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @PutMapping("/notifications/{id}/read")
+    public ResponseEntity<Map<String, String>> markNotificationAsRead(
+            @Parameter(description = "ID da notificação") @PathVariable String id) {
+        try {
+            notificationService.markAsRead(id);
+            return ResponseEntity.ok(Map.of("message", "Notificação marcada como lida"));
+        } catch (Exception e) {
+            log.error("Erro ao marcar notificação como lida {}: {}", id, e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Erro ao marcar notificação como lida: " + e.getMessage()));
+        }
+    }
+    
+    @Operation(
+        summary = "Marcar Todas como Lidas",
+        description = "Marca todas as notificações como lidas",
+        tags = {"Notificações"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Todas as notificações foram marcadas como lidas"),
+        @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
+    @PutMapping("/notifications/read-all")
+    public ResponseEntity<Map<String, String>> markAllNotificationsAsRead() {
+        try {
+            notificationService.markAllAsRead();
+            return ResponseEntity.ok(Map.of("message", "Todas as notificações foram marcadas como lidas"));
+        } catch (Exception e) {
+            log.error("Erro ao marcar todas as notificações como lidas: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Erro ao marcar todas como lidas: " + e.getMessage()));
         }
     }
 }

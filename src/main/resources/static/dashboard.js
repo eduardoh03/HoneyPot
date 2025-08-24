@@ -33,6 +33,10 @@ class SecurityDashboard {
         // Paginação
         document.getElementById('prev-page')?.addEventListener('click', () => this.previousPage());
         document.getElementById('next-page')?.addEventListener('click', () => this.nextPage());
+        
+        // Notificações
+        document.getElementById('mark-all-read-btn')?.addEventListener('click', () => this.markAllNotificationsAsRead());
+        document.getElementById('view-all-notifications-btn')?.addEventListener('click', () => this.showAllNotificationsModal());
     }
 
     async loadInitialData() {
@@ -45,6 +49,7 @@ class SecurityDashboard {
                 this.loadTopIps(),
                 this.loadTopCredentials(),
                 this.loadLogs(),
+                this.loadNotifications(),
                 this.initCharts()
             ]);
             
@@ -75,6 +80,7 @@ class SecurityDashboard {
                 this.loadTopIps(),
                 this.loadTopCredentials(),
                 this.loadLogs(),
+                this.loadNotifications(),
                 this.updateCharts()
             ]);
             
@@ -726,6 +732,178 @@ class SecurityDashboard {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+    
+    // ========================================
+    // FUNÇÕES DE NOTIFICAÇÕES
+    // ========================================
+    
+    async loadNotifications() {
+        try {
+            const unreadNotifications = await this.apiCall('/notifications/unread');
+            this.renderNotifications(unreadNotifications);
+            this.updateUnreadCount(unreadNotifications.length);
+        } catch (error) {
+            console.error('Erro ao carregar notificações:', error);
+        }
+    }
+    
+    renderNotifications(notifications) {
+        const container = document.getElementById('notifications-list');
+        
+        if (!notifications || notifications.length === 0) {
+            container.innerHTML = '<div class="no-notifications">Nenhuma notificação não lida</div>';
+            return;
+        }
+        
+        container.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.read ? '' : 'unread'} ${notification.isHighPriority ? 'high-priority' : ''} ${notification.isCritical ? 'critical' : ''} notification-type-${notification.type.toLowerCase()}">
+                <div class="notification-icon">
+                    ${this.getNotificationIcon(notification.type)}
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${this.escapeHtml(notification.title)}</div>
+                    <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+                    <div class="notification-meta">
+                        <span class="notification-timestamp">${this.formatDateTime(notification.timestamp)}</span>
+                        ${notification.sourceIp ? `<span>IP: ${notification.sourceIp}</span>` : ''}
+                        ${notification.protocol ? `<span>Protocolo: ${notification.protocol}</span>` : ''}
+                    </div>
+                </div>
+                <div class="notification-actions">
+                    ${!notification.read ? `<button class="btn-mark-read" onclick="dashboard.markNotificationAsRead('${notification.id}')">Marcar como Lida</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    getNotificationIcon(type) {
+        const icons = {
+            'INFO': 'ℹ️',
+            'WARNING': '⚠️',
+            'ERROR': '❌',
+            'SUCCESS': '✅',
+            'ALERT': '🚨'
+        };
+        return icons[type] || '📢';
+    }
+    
+    updateUnreadCount(count) {
+        const badge = document.getElementById('unread-count');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+    
+    async markNotificationAsRead(id) {
+        try {
+            await this.apiCall(`/notifications/${id}/read`, { method: 'PUT' });
+            this.showToast('Notificação marcada como lida', 'success');
+            this.loadNotifications(); // Recarregar notificações
+        } catch (error) {
+            console.error('Erro ao marcar notificação como lida:', error);
+            this.showToast('Erro ao marcar notificação como lida', 'error');
+        }
+    }
+    
+    async markAllNotificationsAsRead() {
+        try {
+            await this.apiCall('/notifications/read-all', { method: 'PUT' });
+            this.showToast('Todas as notificações foram marcadas como lidas', 'success');
+            this.loadNotifications(); // Recarregar notificações
+        } catch (error) {
+            console.error('Erro ao marcar todas as notificações como lidas:', error);
+            this.showToast('Erro ao marcar todas como lidas', 'error');
+        }
+    }
+    
+    async showAllNotificationsModal() {
+        try {
+            const allNotifications = await this.apiCall('/notifications?page=0&size=100');
+            this.renderAllNotificationsModal(allNotifications.notifications || []);
+            
+            const modal = document.getElementById('all-notifications-modal');
+            modal.classList.add('show');
+            this.setupAllNotificationsModalEvents();
+        } catch (error) {
+            console.error('Erro ao carregar todas as notificações:', error);
+            this.showToast('Erro ao carregar notificações', 'error');
+        }
+    }
+    
+    renderAllNotificationsModal(notifications) {
+        const container = document.getElementById('all-notifications-container');
+        
+        if (!notifications || notifications.length === 0) {
+            container.innerHTML = '<div class="no-notifications">Nenhuma notificação encontrada</div>';
+            return;
+        }
+        
+        container.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.read ? '' : 'unread'} ${notification.isHighPriority ? 'high-priority' : ''} ${notification.isCritical ? 'critical' : ''} notification-type-${notification.type.toLowerCase()}">
+                <div class="notification-icon">
+                    ${this.getNotificationIcon(notification.type)}
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${this.escapeHtml(notification.title)}</div>
+                    <div class="notification-message">${this.escapeHtml(notification.message)}</div>
+                    <div class="notification-meta">
+                        <span class="notification-timestamp">${this.formatDateTime(notification.timestamp)}</span>
+                        ${notification.sourceIp ? `<span>IP: ${notification.sourceIp}</span>` : ''}
+                        ${notification.protocol ? `<span>Protocolo: ${notification.protocol}</span>` : ''}
+                        <span>Categoria: ${notification.category}</span>
+                    </div>
+                </div>
+                <div class="notification-actions">
+                    ${!notification.read ? `<button class="btn-mark-read" onclick="dashboard.markNotificationAsRead('${notification.id}')">Marcar como Lida</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    setupAllNotificationsModalEvents() {
+        const modal = document.getElementById('all-notifications-modal');
+        const closeBtn = modal.querySelector('.modal-close');
+        
+        // Fechar ao clicar no X
+        closeBtn.onclick = () => this.closeAllNotificationsModal();
+        
+        // Fechar ao clicar fora do modal
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                this.closeAllNotificationsModal();
+            }
+        };
+        
+        // Fechar com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                this.closeAllNotificationsModal();
+            }
+        });
+        
+        // Filtros
+        document.getElementById('notification-type-filter')?.addEventListener('change', () => this.filterNotifications());
+        document.getElementById('notification-category-filter')?.addEventListener('change', () => this.filterNotifications());
+        document.getElementById('clear-notification-filters')?.addEventListener('click', () => this.clearNotificationFilters());
+    }
+    
+    closeAllNotificationsModal() {
+        const modal = document.getElementById('all-notifications-modal');
+        modal.classList.remove('show');
+    }
+    
+    filterNotifications() {
+        // Implementar filtros de notificações se necessário
+        console.log('Filtros de notificações implementados');
+    }
+    
+    clearNotificationFilters() {
+        document.getElementById('notification-type-filter').value = '';
+        document.getElementById('notification-category-filter').value = '';
+        // Recarregar notificações sem filtros
+        this.showAllNotificationsModal();
     }
 }
 

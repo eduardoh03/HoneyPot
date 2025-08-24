@@ -2,6 +2,7 @@ package com.eduardo.HoneyPot.service;
 
 import com.eduardo.HoneyPot.model.AttackLog;
 import com.eduardo.HoneyPot.repository.AttackLogRepository;
+import com.eduardo.HoneyPot.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,9 @@ public class HoneyPotService {
     
     @Autowired
     private AttackLogRepository attackLogRepository;
+    
+    @Autowired
+    private NotificationService notificationService;
     
     @Value("${honeypot.ssh.port}")
     private int sshPort;
@@ -86,6 +90,10 @@ public class HoneyPotService {
             executorService.shutdown();
         }
         
+        // Criar notificação de sistema
+        notificationService.createSystemNotification("INFO", "Honeypot Parado", 
+            "Honeypot SSH/Telnet foi parado com sucesso");
+        
         log.info("Honeypot parado");
     }
     
@@ -95,6 +103,10 @@ public class HoneyPotService {
                 Socket clientSocket = sshServer.accept();
                 String clientIp = clientSocket.getInetAddress().getHostAddress();
                 log.info("Nova conexão SSH de: {}", clientIp);
+                
+                // Criar notificação de nova conexão
+                notificationService.createAttackNotification("INFO", "Nova Conexão SSH", 
+                    "Nova tentativa de conexão SSH detectada", clientIp, "SSH", null);
                 
                 executorService.submit(() -> handleSSHConnection(clientSocket));
                 
@@ -112,6 +124,10 @@ public class HoneyPotService {
                 Socket clientSocket = telnetServer.accept();
                 String clientIp = clientSocket.getInetAddress().getHostAddress();
                 log.info("Nova conexão Telnet de: {}", clientIp);
+                
+                // Criar notificação de nova conexão
+                notificationService.createAttackNotification("INFO", "Nova Conexão Telnet", 
+                    "Nova tentativa de conexão Telnet detectada", clientIp, "TELNET", null);
                 
                 executorService.submit(() -> handleTelnetConnection(clientSocket));
                 
@@ -134,8 +150,16 @@ public class HoneyPotService {
         try {
             attackLogRepository.save(attackLog);
             log.info("SSH [{}]: Log inicial salvo com sucesso", clientIp);
+            
+            // Criar notificação de credenciais capturadas
+            notificationService.createAttackNotification("SUCCESS", "Credenciais SSH Capturadas", 
+                "Novas credenciais SSH foram capturadas e registradas", clientIp, "SSH", attackLog.getUsername());
         } catch (Exception e) {
             log.error("SSH [{}]: ERRO ao salvar log inicial: {}", clientIp, e.getMessage());
+            
+            // Criar notificação de erro
+            notificationService.createAttackNotification("ERROR", "Erro ao Salvar Log SSH", 
+                "Falha ao salvar log de ataque SSH: " + e.getMessage(), clientIp, "SSH", null);
         }
         
         try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
