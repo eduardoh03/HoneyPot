@@ -884,9 +884,17 @@ class SecurityDashboard {
         });
         
         // Filtros
-        document.getElementById('notification-type-filter')?.addEventListener('change', () => this.filterNotifications());
-        document.getElementById('notification-category-filter')?.addEventListener('change', () => this.filterNotifications());
         document.getElementById('clear-notification-filters')?.addEventListener('click', () => this.clearNotificationFilters());
+        
+        // Aplicar filtros automaticamente com debounce
+        let filterTimeout;
+        const applyFiltersWithDelay = () => {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => this.filterNotifications(), 300);
+        };
+        
+        document.getElementById('notification-type-filter')?.addEventListener('change', applyFiltersWithDelay);
+        document.getElementById('notification-category-filter')?.addEventListener('change', applyFiltersWithDelay);
     }
     
     closeAllNotificationsModal() {
@@ -894,16 +902,77 @@ class SecurityDashboard {
         modal.classList.remove('show');
     }
     
-    filterNotifications() {
-        // Implementar filtros de notificações se necessário
-        console.log('Filtros de notificações implementados');
+    async filterNotifications() {
+        try {
+            const typeFilter = document.getElementById('notification-type-filter').value;
+            const categoryFilter = document.getElementById('notification-category-filter').value;
+            
+            // Atualizar indicador de filtros ativos
+            this.updateActiveFiltersIndicator(typeFilter, categoryFilter);
+            
+            // Se não há filtros ativos, recarregar todas as notificações
+            if (!typeFilter && !categoryFilter) {
+                this.showAllNotificationsModal();
+                return;
+            }
+            
+            // Construir URL com filtros
+            let url = '/notifications?page=0&size=100';
+            if (typeFilter) {
+                url += `&type=${encodeURIComponent(typeFilter)}`;
+            }
+            if (categoryFilter) {
+                url += `&category=${encodeURIComponent(categoryFilter)}`;
+            }
+            
+            const response = await this.apiCall(url);
+            const filteredNotifications = response.notifications || [];
+            
+            // Renderizar notificações filtradas
+            this.renderAllNotificationsModal(filteredNotifications);
+            
+            // Mostrar feedback visual
+            const filterInfo = [];
+            if (typeFilter) filterInfo.push(`Tipo: ${typeFilter}`);
+            if (categoryFilter) filterInfo.push(`Categoria: ${categoryFilter}`);
+            
+            if (filterInfo.length > 0) {
+                this.showToast(`Filtros aplicados: ${filterInfo.join(', ')}`, 'info');
+            }
+            
+        } catch (error) {
+            console.error('Erro ao filtrar notificações:', error);
+            this.showToast('Erro ao aplicar filtros', 'error');
+        }
+    }
+    
+    updateActiveFiltersIndicator(typeFilter, categoryFilter) {
+        const indicator = document.getElementById('active-filters-indicator');
+        if (indicator) {
+            if (typeFilter || categoryFilter) {
+                indicator.style.display = 'inline-flex';
+                const filterText = [];
+                if (typeFilter) filterText.push(typeFilter);
+                if (categoryFilter) filterText.push(categoryFilter);
+                indicator.textContent = `Filtros: ${filterText.join(', ')}`;
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
     }
     
     clearNotificationFilters() {
         document.getElementById('notification-type-filter').value = '';
         document.getElementById('notification-category-filter').value = '';
+        
+        // Atualizar indicador de filtros ativos
+        this.updateActiveFiltersIndicator('', '');
+        
         // Recarregar notificações sem filtros
         this.showAllNotificationsModal();
+        
+        // Mostrar feedback
+        this.showToast('Filtros removidos', 'info');
     }
 }
 

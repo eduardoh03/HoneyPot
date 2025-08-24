@@ -712,9 +712,22 @@ public class HoneyPotController {
     @GetMapping("/notifications")
     public ResponseEntity<Map<String, Object>> getNotifications(
             @Parameter(description = "Página atual (0-based)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size) {
+            @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Filtrar por tipo") @RequestParam(required = false) String type,
+            @Parameter(description = "Filtrar por categoria") @RequestParam(required = false) String category) {
         try {
-            Map<String, Object> notifications = notificationService.getAllNotifications(page, size);
+            Map<String, Object> notifications;
+            
+            if (type != null && !type.isEmpty()) {
+                List<com.eduardo.HoneyPot.model.Notification> filteredByType = notificationService.getNotificationsByType(type);
+                notifications = createPaginatedResponse(filteredByType, page, size);
+            } else if (category != null && !category.isEmpty()) {
+                List<com.eduardo.HoneyPot.model.Notification> filteredByCategory = notificationService.getNotificationsByCategory(category);
+                notifications = createPaginatedResponse(filteredByCategory, page, size);
+            } else {
+                notifications = notificationService.getAllNotifications(page, size);
+            }
+            
             return ResponseEntity.ok(notifications);
         } catch (Exception e) {
             log.error("Erro ao buscar notificações: {}", e.getMessage());
@@ -825,5 +838,37 @@ public class HoneyPotController {
             return ResponseEntity.internalServerError()
                 .body(Map.of("error", "Erro ao marcar todas como lidas: " + e.getMessage()));
         }
+    }
+    
+    /**
+     * Método auxiliar para criar resposta paginada
+     */
+    private Map<String, Object> createPaginatedResponse(List<com.eduardo.HoneyPot.model.Notification> notifications, int page, int size) {
+        if (notifications.isEmpty()) {
+            return Map.of(
+                "notifications", List.of(),
+                "totalPages", 0,
+                "totalElements", 0L,
+                "currentPage", page,
+                "size", size,
+                "timestamp", LocalDateTime.now()
+            );
+        }
+        
+        // Implementar paginação manual
+        int start = page * size;
+        int end = Math.min(start + size, notifications.size());
+        List<com.eduardo.HoneyPot.model.Notification> pageContent = notifications.subList(start, end);
+        
+        int totalPages = (int) Math.ceil((double) notifications.size() / size);
+        
+        return Map.of(
+            "notifications", pageContent,
+            "totalPages", totalPages,
+            "totalElements", (long) notifications.size(),
+            "currentPage", page,
+            "size", size,
+            "timestamp", LocalDateTime.now()
+        );
     }
 }

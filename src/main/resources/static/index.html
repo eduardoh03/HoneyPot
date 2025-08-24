@@ -265,22 +265,31 @@
             </div>
             <div class="modal-body">
                 <div class="notifications-filters">
-                    <select id="notification-type-filter">
-                        <option value="">Todos os Tipos</option>
-                        <option value="INFO">Info</option>
-                        <option value="WARNING">Aviso</option>
-                        <option value="ERROR">Erro</option>
-                        <option value="SUCCESS">Sucesso</option>
-                        <option value="ALERT">Alerta</option>
-                    </select>
-                    <select id="notification-category-filter">
-                        <option value="">Todas as Categorias</option>
-                        <option value="SYSTEM">Sistema</option>
-                        <option value="SECURITY">Segurança</option>
-                        <option value="ATTACK">Ataque</option>
-                        <option value="PERFORMANCE">Performance</option>
-                    </select>
-                    <button id="clear-notification-filters" class="btn btn-secondary btn-sm">Limpar Filtros</button>
+                    <div class="filter-group">
+                        <label for="notification-type-filter">Tipo:</label>
+                        <select id="notification-type-filter">
+                            <option value="">Todos os Tipos</option>
+                            <option value="INFO">Info</option>
+                            <option value="WARNING">Aviso</option>
+                            <option value="ERROR">Erro</option>
+                            <option value="SUCCESS">Sucesso</option>
+                            <option value="ALERT">Alerta</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="notification-category-filter">Categoria:</label>
+                        <select id="notification-category-filter">
+                            <option value="">Todas as Categorias</option>
+                            <option value="SYSTEM">Sistema</option>
+                            <option value="SECURITY">Segurança</option>
+                            <option value="ATTACK">Ataque</option>
+                            <option value="PERFORMANCE">Performance</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <span id="active-filters-indicator" class="active-filters-badge" style="display: none;">Filtros Ativos</span>
+                        <button id="clear-notification-filters" class="btn btn-secondary btn-sm">Limpar Filtros</button>
+                    </div>
                 </div>
                 <div id="all-notifications-container">
                     <!-- Todas as notificações serão carregadas aqui -->

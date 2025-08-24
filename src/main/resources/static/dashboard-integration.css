@@ -621,6 +621,21 @@
   gap: 1rem;
   margin-bottom: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .notifications-filters select {
@@ -629,6 +644,31 @@
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   background-color: var(--bg-primary);
+  min-width: 150px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.active-filters-badge {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.active-filters-badge::before {
+  content: "🔍";
+  font-size: 0.875rem;
 }
 
 .notifications-filters button {
