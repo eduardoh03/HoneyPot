@@ -2,7 +2,6 @@ package com.eduardo.HoneyPot.service;
 
 import com.eduardo.HoneyPot.model.AttackLog;
 import com.eduardo.HoneyPot.repository.AttackLogRepository;
-import com.eduardo.HoneyPot.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

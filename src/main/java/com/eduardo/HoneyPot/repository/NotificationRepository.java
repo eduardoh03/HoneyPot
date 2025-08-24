@@ -27,6 +27,18 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     @Query("{'read': false}")
     List<Notification> findUnreadNotifications();
     
+    // Buscar notificações por tipo e categoria combinados
+    List<Notification> findByTypeAndCategoryOrderByTimestampDesc(String type, String category);
+    
+    // Buscar notificações por IP com ordenação
+    List<Notification> findBySourceIpOrderByTimestampDesc(String sourceIp);
+    
+    // Buscar notificações por protocolo com ordenação
+    List<Notification> findByProtocolOrderByTimestampDesc(String protocol);
+    
+    // Buscar notificações acionáveis com ordenação
+    List<Notification> findByActionableOrderByTimestampDesc(boolean actionable);
+    
     long countByRead(boolean read);
     
     long countByType(String type);
@@ -37,13 +49,4 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     
     @Query("{'timestamp': {$gte: ?0}}")
     long countRecentNotifications(LocalDateTime since);
-    
-    // Buscar notificações por IP específico
-    List<Notification> findBySourceIpOrderByTimestampDesc(String sourceIp);
-    
-    // Buscar notificações por protocolo
-    List<Notification> findByProtocolOrderByTimestampDesc(String protocol);
-    
-    // Buscar notificações acionáveis
-    List<Notification> findByActionableOrderByTimestampDesc(boolean actionable);
 }

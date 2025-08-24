@@ -713,19 +713,22 @@ public class HoneyPotController {
     public ResponseEntity<Map<String, Object>> getNotifications(
             @Parameter(description = "Página atual (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Campo para ordenação") @RequestParam(required = false) String sortBy,
+            @Parameter(description = "Direção da ordenação (asc/desc)") @RequestParam(required = false) String sortDir,
             @Parameter(description = "Filtrar por tipo") @RequestParam(required = false) String type,
             @Parameter(description = "Filtrar por categoria") @RequestParam(required = false) String category) {
         try {
             Map<String, Object> notifications;
             
-            if (type != null && !type.isEmpty()) {
-                List<com.eduardo.HoneyPot.model.Notification> filteredByType = notificationService.getNotificationsByType(type);
-                notifications = createPaginatedResponse(filteredByType, page, size);
-            } else if (category != null && !category.isEmpty()) {
-                List<com.eduardo.HoneyPot.model.Notification> filteredByCategory = notificationService.getNotificationsByCategory(category);
-                notifications = createPaginatedResponse(filteredByCategory, page, size);
+            // Valores padrão para ordenação
+            String sortField = (sortBy != null && !sortBy.isEmpty()) ? sortBy : "timestamp";
+            String sortDirection = (sortDir != null && !sortDir.isEmpty()) ? sortDir : "desc";
+            
+            // Se há filtros, usar método filtrado
+            if ((type != null && !type.isEmpty()) || (category != null && !category.isEmpty())) {
+                notifications = notificationService.getFilteredNotifications(page, size, type, category, sortField, sortDirection);
             } else {
-                notifications = notificationService.getAllNotifications(page, size);
+                notifications = notificationService.getAllNotifications(page, size, sortField, sortDirection);
             }
             
             return ResponseEntity.ok(notifications);

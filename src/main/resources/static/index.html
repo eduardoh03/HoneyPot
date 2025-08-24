@@ -286,9 +286,36 @@
                             <option value="PERFORMANCE">Performance</option>
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label for="notification-sort-field">Ordenar por:</label>
+                        <select id="notification-sort-field">
+                            <option value="timestamp">Data/Hora</option>
+                            <option value="type">Tipo</option>
+                            <option value="category">Categoria</option>
+                            <option value="priority">Prioridade</option>
+                            <option value="read">Status de Leitura</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="notification-sort-direction">Direção:</label>
+                        <select id="notification-sort-direction">
+                            <option value="desc">Mais Recentes</option>
+                            <option value="asc">Mais Antigas</option>
+                        </select>
+                    </div>
                     <div class="filter-actions">
                         <span id="active-filters-indicator" class="active-filters-badge" style="display: none;">Filtros Ativos</span>
                         <button id="clear-notification-filters" class="btn btn-secondary btn-sm">Limpar Filtros</button>
+                    </div>
+                </div>
+                <div class="notifications-pagination">
+                    <div class="pagination-info">
+                        <span id="notifications-page-info">Página 1 de 1</span>
+                        <span id="notifications-total">Total: 0 notificações</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="notifications-prev-page" class="btn btn-secondary btn-sm">← Anterior</button>
+                        <button id="notifications-next-page" class="btn btn-secondary btn-sm">Próxima →</button>
                     </div>
                 </div>
                 <div id="all-notifications-container">

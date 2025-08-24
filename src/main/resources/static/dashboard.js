@@ -4,6 +4,8 @@ class SecurityDashboard {
         this.apiUrl = '/api/honeypot';
         this.currentPage = 0;
         this.pageSize = 20;
+        this.currentNotificationsPage = 0;
+        this.notificationsPageSize = 20;
         this.refreshInterval = 30000; // 30 segundos
         this.charts = {};
         this.isLoading = false;
@@ -820,8 +822,14 @@ class SecurityDashboard {
     
     async showAllNotificationsModal() {
         try {
-            const allNotifications = await this.apiCall('/notifications?page=0&size=100');
+            // Resetar para primeira página
+            this.currentNotificationsPage = 0;
+            
+            const allNotifications = await this.apiCall('/notifications?page=0&size=20');
             this.renderAllNotificationsModal(allNotifications.notifications || []);
+            
+            // Atualizar paginação
+            this.updateNotificationsPagination(allNotifications);
             
             const modal = document.getElementById('all-notifications-modal');
             modal.classList.add('show');
@@ -886,6 +894,10 @@ class SecurityDashboard {
         // Filtros
         document.getElementById('clear-notification-filters')?.addEventListener('click', () => this.clearNotificationFilters());
         
+        // Paginação
+        document.getElementById('notifications-prev-page')?.addEventListener('click', () => this.previousNotificationsPage());
+        document.getElementById('notifications-next-page')?.addEventListener('click', () => this.nextNotificationsPage());
+        
         // Aplicar filtros automaticamente com debounce
         let filterTimeout;
         const applyFiltersWithDelay = () => {
@@ -895,6 +907,8 @@ class SecurityDashboard {
         
         document.getElementById('notification-type-filter')?.addEventListener('change', applyFiltersWithDelay);
         document.getElementById('notification-category-filter')?.addEventListener('change', applyFiltersWithDelay);
+        document.getElementById('notification-sort-field')?.addEventListener('change', applyFiltersWithDelay);
+        document.getElementById('notification-sort-direction')?.addEventListener('change', applyFiltersWithDelay);
     }
     
     closeAllNotificationsModal() {
@@ -906,23 +920,28 @@ class SecurityDashboard {
         try {
             const typeFilter = document.getElementById('notification-type-filter').value;
             const categoryFilter = document.getElementById('notification-category-filter').value;
+            const sortField = document.getElementById('notification-sort-field').value;
+            const sortDirection = document.getElementById('notification-sort-direction').value;
             
             // Atualizar indicador de filtros ativos
-            this.updateActiveFiltersIndicator(typeFilter, categoryFilter);
+            this.updateActiveFiltersIndicator(typeFilter, categoryFilter, sortField, sortDirection);
             
-            // Se não há filtros ativos, recarregar todas as notificações
-            if (!typeFilter && !categoryFilter) {
-                this.showAllNotificationsModal();
-                return;
-            }
+            // Resetar para primeira página
+            this.currentNotificationsPage = 0;
             
-            // Construir URL com filtros
-            let url = '/notifications?page=0&size=100';
+            // Construir URL com filtros, ordenação e paginação
+            let url = `/notifications?page=${this.currentNotificationsPage}&size=${this.notificationsPageSize}`;
             if (typeFilter) {
                 url += `&type=${encodeURIComponent(typeFilter)}`;
             }
             if (categoryFilter) {
                 url += `&category=${encodeURIComponent(categoryFilter)}`;
+            }
+            if (sortField) {
+                url += `&sortBy=${encodeURIComponent(sortField)}`;
+            }
+            if (sortDirection) {
+                url += `&sortDir=${encodeURIComponent(sortDirection)}`;
             }
             
             const response = await this.apiCall(url);
@@ -931,12 +950,25 @@ class SecurityDashboard {
             // Renderizar notificações filtradas
             this.renderAllNotificationsModal(filteredNotifications);
             
-            // Mostrar feedback visual
-            const filterInfo = [];
-            if (typeFilter) filterInfo.push(`Tipo: ${typeFilter}`);
-            if (categoryFilter) filterInfo.push(`Categoria: ${categoryFilter}`);
+            // Atualizar paginação
+            this.updateNotificationsPagination(response);
             
-            if (filterInfo.length > 0) {
+            // Mostrar feedback visual apenas se há filtros ativos
+            const hasFilters = typeFilter || categoryFilter;
+            const hasCustomSort = sortField && sortField !== 'timestamp' || sortDirection && sortDirection !== 'desc';
+            
+            if (hasFilters || hasCustomSort) {
+                const filterInfo = [];
+                if (typeFilter) filterInfo.push(`Tipo: ${typeFilter}`);
+                if (categoryFilter) filterInfo.push(`Categoria: ${categoryFilter}`);
+                if (hasCustomSort) {
+                    const sortLabel = sortField === 'timestamp' ? 'Data/Hora' : 
+                                     sortField === 'type' ? 'Tipo' :
+                                     sortField === 'category' ? 'Categoria' :
+                                     sortField === 'priority' ? 'Prioridade' :
+                                     sortField === 'read' ? 'Status' : sortField;
+                    filterInfo.push(`Ordenar: ${sortLabel} (${sortDirection === 'desc' ? 'Mais Recentes' : 'Mais Antigas'})`);
+                }
                 this.showToast(`Filtros aplicados: ${filterInfo.join(', ')}`, 'info');
             }
             
@@ -946,14 +978,25 @@ class SecurityDashboard {
         }
     }
     
-    updateActiveFiltersIndicator(typeFilter, categoryFilter) {
+    updateActiveFiltersIndicator(typeFilter, categoryFilter, sortField, sortDirection) {
         const indicator = document.getElementById('active-filters-indicator');
         if (indicator) {
-            if (typeFilter || categoryFilter) {
+            const hasFilters = typeFilter || categoryFilter;
+            const hasCustomSort = sortField && sortField !== 'timestamp' || sortDirection && sortDirection !== 'desc';
+            
+            if (hasFilters || hasCustomSort) {
                 indicator.style.display = 'inline-flex';
                 const filterText = [];
-                if (typeFilter) filterText.push(typeFilter);
-                if (categoryFilter) filterText.push(categoryFilter);
+                if (typeFilter) filterText.push(`Tipo: ${typeFilter}`);
+                if (categoryFilter) filterText.push(`Categoria: ${categoryFilter}`);
+                if (hasCustomSort) {
+                    const sortLabel = sortField === 'timestamp' ? 'Data/Hora' : 
+                                     sortField === 'type' ? 'Tipo' :
+                                     sortField === 'category' ? 'Categoria' :
+                                     sortField === 'priority' ? 'Prioridade' :
+                                     sortField === 'read' ? 'Status' : sortField;
+                    filterText.push(`Ordenar: ${sortLabel} (${sortDirection === 'desc' ? 'Mais Recentes' : 'Mais Antigas'})`);
+                }
                 indicator.textContent = `Filtros: ${filterText.join(', ')}`;
             } else {
                 indicator.style.display = 'none';
@@ -964,15 +1007,118 @@ class SecurityDashboard {
     clearNotificationFilters() {
         document.getElementById('notification-type-filter').value = '';
         document.getElementById('notification-category-filter').value = '';
+        document.getElementById('notification-sort-field').value = 'timestamp';
+        document.getElementById('notification-sort-direction').value = 'desc';
         
         // Atualizar indicador de filtros ativos
-        this.updateActiveFiltersIndicator('', '');
+        this.updateActiveFiltersIndicator('', '', '', '');
+        
+        // Resetar para primeira página
+        this.currentNotificationsPage = 0;
         
         // Recarregar notificações sem filtros
         this.showAllNotificationsModal();
         
         // Mostrar feedback
         this.showToast('Filtros removidos', 'info');
+    }
+    
+    // Métodos de paginação das notificações
+    async previousNotificationsPage() {
+        if (this.currentNotificationsPage > 0) {
+            this.currentNotificationsPage--;
+            await this.loadNotificationsPage();
+        }
+    }
+    
+    async nextNotificationsPage() {
+        this.currentNotificationsPage++;
+        await this.loadNotificationsPage();
+    }
+    
+    async loadNotificationsPage() {
+        try {
+            // Mostrar loading
+            this.setNotificationsLoading(true);
+            
+            const typeFilter = document.getElementById('notification-type-filter').value;
+            const categoryFilter = document.getElementById('notification-category-filter').value;
+            const sortField = document.getElementById('notification-sort-field').value;
+            const sortDirection = document.getElementById('notification-sort-direction').value;
+            
+            // Construir URL com filtros, ordenação e paginação
+            let url = `/notifications?page=${this.currentNotificationsPage}&size=${this.notificationsPageSize}`;
+            if (typeFilter) {
+                url += `&type=${encodeURIComponent(typeFilter)}`;
+            }
+            if (categoryFilter) {
+                url += `&category=${encodeURIComponent(categoryFilter)}`;
+            }
+            if (sortField) {
+                url += `&sortBy=${encodeURIComponent(sortField)}`;
+            }
+            if (sortDirection) {
+                url += `&sortDir=${encodeURIComponent(sortDirection)}`;
+            }
+            
+            const response = await this.apiCall(url);
+            const notifications = response.notifications || [];
+            
+            // Renderizar notificações da página
+            this.renderAllNotificationsModal(notifications);
+            
+            // Atualizar paginação
+            this.updateNotificationsPagination(response);
+            
+        } catch (error) {
+            console.error('Erro ao carregar página de notificações:', error);
+            this.showToast('Erro ao carregar página', 'error');
+        } finally {
+            this.setNotificationsLoading(false);
+        }
+    }
+    
+    setNotificationsLoading(loading) {
+        const container = document.getElementById('all-notifications-container');
+        const prevBtn = document.getElementById('notifications-prev-page');
+        const nextBtn = document.getElementById('notifications-next-page');
+        
+        if (loading) {
+            if (container) {
+                container.innerHTML = '<div class="notifications-loading">Carregando notificações...</div>';
+            }
+            if (prevBtn) prevBtn.disabled = true;
+            if (nextBtn) nextBtn.disabled = true;
+        } else {
+            if (prevBtn) prevBtn.disabled = false;
+            if (nextBtn) nextBtn.disabled = false;
+        }
+    }
+    
+    updateNotificationsPagination(response) {
+        const pageInfo = document.getElementById('notifications-page-info');
+        const totalInfo = document.getElementById('notifications-total');
+        const prevBtn = document.getElementById('notifications-prev-page');
+        const nextBtn = document.getElementById('notifications-next-page');
+        
+        if (pageInfo) {
+            const currentPage = (response.currentPage || 0) + 1;
+            const totalPages = response.totalPages || 1;
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+        }
+        
+        if (totalInfo) {
+            const totalElements = response.totalElements || 0;
+            totalInfo.textContent = `Total: ${totalElements} notificações`;
+        }
+        
+        if (prevBtn) {
+            prevBtn.disabled = (response.currentPage || 0) <= 0;
+        }
+        
+        if (nextBtn) {
+            nextBtn.disabled = (response.currentPage || 0) >= (response.totalPages || 1) - 1;
+        }
     }
 }
 

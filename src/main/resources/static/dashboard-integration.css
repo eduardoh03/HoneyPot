@@ -675,6 +675,43 @@
   padding: 0.5rem 1rem;
 }
 
+/* Paginação das Notificações */
+.notifications-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-top: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+  margin-bottom: 1rem;
+}
+
+.pagination-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pagination-info span {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-controls button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Notification Types */
 .notification-type-info .notification-icon {
   color: var(--info-color);
@@ -708,5 +745,20 @@
 .notifications-loading {
   text-align: center;
   padding: 2rem;
-  color: var(--gray-500);
+  color: var(--gray-600);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.notifications-loading::before {
+  content: "⏳";
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
