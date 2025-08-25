@@ -5,6 +5,11 @@ import com.eduardo.HoneyPot.model.CommandExecution;
 import com.eduardo.HoneyPot.model.Notification;
 import com.eduardo.HoneyPot.repository.AttackLogRepository;
 import com.eduardo.HoneyPot.repository.NotificationRepository;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -513,16 +518,37 @@ public class ReportService {
     }
     
     private byte[] generateBasicPDFReport(List<AttackLog> attacks) {
-        // Implementação básica de PDF (placeholder)
-        // Em uma implementação real, usaríamos iText7 para criar um PDF completo
-        String reportContent = "Relatório de Ataques Honeypot\n";
-        reportContent += "Data: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "\n";
-        reportContent += "Total de Ataques: " + attacks.size() + "\n\n";
-        
-        for (AttackLog attack : attacks) {
-            reportContent += "IP: " + attack.getSourceIp() + " | Protocolo: " + attack.getProtocol() + " | Data: " + formatDateTime(attack.getTimestamp()) + "\n";
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            PdfWriter writer = new PdfWriter(outputStream);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+    
+            // Título
+            document.add(new Paragraph("Relatório de Ataques Honeypot")
+                    .setBold()
+                    .setFontSize(16));
+    
+            document.add(new Paragraph("Data de Geração: " +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+    
+            document.add(new Paragraph("Total de Ataques: " + attacks.size()));
+            document.add(new Paragraph("\n"));
+    
+            // Lista de ataques
+            for (AttackLog attack : attacks) {
+                document.add(new Paragraph(
+                    "IP: " + attack.getSourceIp() +
+                    " | Protocolo: " + attack.getProtocol() +
+                    " | Data: " + formatDateTime(attack.getTimestamp())
+                ));
+            }
+    
+            document.close();
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            log.error("Erro ao gerar PDF: {}", e.getMessage());
+            return new byte[0];
         }
-        
-        return reportContent.getBytes();
     }
+    
 }
