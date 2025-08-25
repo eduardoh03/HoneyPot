@@ -39,6 +39,14 @@ class SecurityDashboard {
         // Notificações
         document.getElementById('mark-all-read-btn')?.addEventListener('click', () => this.markAllNotificationsAsRead());
         document.getElementById('view-all-notifications-btn')?.addEventListener('click', () => this.showAllNotificationsModal());
+        
+        // Relatórios
+        document.getElementById('pdf-attacks-btn')?.addEventListener('click', () => this.generateReport('pdf', 'attacks'));
+        document.getElementById('excel-attacks-btn')?.addEventListener('click', () => this.generateReport('excel', 'attacks'));
+        document.getElementById('excel-stats-btn')?.addEventListener('click', () => this.generateReport('excel', 'statistics'));
+        document.getElementById('excel-notifications-btn')?.addEventListener('click', () => this.generateReport('excel', 'notifications'));
+        document.getElementById('excel-consolidated-btn')?.addEventListener('click', () => this.generateReport('excel', 'consolidated'));
+        document.getElementById('generate-all-reports-btn')?.addEventListener('click', () => this.generateAllReports());
     }
 
     async loadInitialData() {
@@ -1119,6 +1127,280 @@ class SecurityDashboard {
         if (nextBtn) {
             nextBtn.disabled = (response.currentPage || 0) >= (response.totalPages || 1) - 1;
         }
+    }
+    
+    // ===== MÉTODOS DE RELATÓRIOS =====
+    
+    /**
+     * Gera um relatório específico
+     */
+    async generateReport(format, type) {
+        try {
+            this.setReportGeneratingState(type, true);
+            this.updateReportsStatus(`Gerando relatório ${type} em ${format.toUpperCase()}...`);
+            
+            const endpoint = `/api/reports/${type}/${format}`;
+            const response = await fetch(endpoint);
+            
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            
+            // Determinar nome do arquivo
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const filename = `relatorio_${type}_${timestamp}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+            
+            // Download do arquivo
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Sucesso
+            this.setReportSuccessState(type);
+            this.updateReportsStatus(`Relatório ${type} gerado com sucesso!`);
+            this.showToast(`Relatório ${type} em ${format.toUpperCase()} gerado com sucesso!`, 'success');
+            
+            // Reset do estado após 3 segundos
+            setTimeout(() => {
+                this.resetReportState(type);
+                this.updateReportsStatus('Pronto para gerar relatórios');
+            }, 3000);
+            
+        } catch (error) {
+            console.error(`Erro ao gerar relatório ${type}:`, error);
+            this.setReportErrorState(type);
+            this.updateReportsStatus(`Erro ao gerar relatório ${type}: ${error.message}`);
+            this.showToast(`Erro ao gerar relatório ${type}`, 'error');
+            
+            // Reset do estado após 5 segundos
+            setTimeout(() => {
+                this.resetReportState(type);
+                this.updateReportsStatus('Pronto para gerar relatórios');
+            }, 5000);
+        }
+    }
+    
+    /**
+     * Gera todos os relatórios disponíveis
+     */
+    async generateAllReports() {
+        try {
+            this.setAllReportsGeneratingState(true);
+            this.updateReportsStatus('Gerando todos os relatórios...');
+            this.showProgressBar(true);
+            
+            const reportTypes = [
+                { format: 'pdf', type: 'attacks' },
+                { format: 'excel', type: 'attacks' },
+                { format: 'excel', type: 'statistics' },
+                { format: 'excel', type: 'notifications' },
+                { format: 'excel', type: 'consolidated' }
+            ];
+            
+            let completed = 0;
+            const total = reportTypes.length;
+            
+            for (const report of reportTypes) {
+                try {
+                    this.updateReportsStatus(`Gerando relatório ${report.type} em ${report.format.toUpperCase()}... (${completed + 1}/${total})`);
+                    
+                    const endpoint = `/api/reports/${report.type}/${report.format}`;
+                    const response = await fetch(endpoint);
+                    
+                    if (response.ok) {
+                        // Download do arquivo
+                        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                        const filename = `relatorio_${report.type}_${timestamp}.${report.format === 'pdf' ? 'pdf' : 'xlsx'}`;
+                        
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                        
+                        completed++;
+                    }
+                } catch (error) {
+                    console.error(`Erro ao gerar relatório ${report.type}:`, error);
+                }
+            }
+            
+            // Sucesso
+            this.setAllReportsSuccessState();
+            this.updateReportsStatus(`Todos os relatórios gerados com sucesso! (${completed}/${total})`);
+            this.showToast(`Relatórios gerados com sucesso! (${completed}/${total})`, 'success');
+            
+            // Reset do estado após 5 segundos
+            setTimeout(() => {
+                this.resetAllReportsState();
+                this.updateReportsStatus('Pronto para gerar relatórios');
+            }, 5000);
+            
+        } catch (error) {
+            console.error('Erro ao gerar todos os relatórios:', error);
+            this.setAllReportsErrorState();
+            this.updateReportsStatus(`Erro ao gerar relatórios: ${error.message}`);
+            this.showToast('Erro ao gerar relatórios', 'error');
+            
+            // Reset do estado após 5 segundos
+            setTimeout(() => {
+                this.resetAllReportsState();
+                this.updateReportsStatus('Pronto para gerar relatórios');
+            }, 5000);
+        } finally {
+            this.showProgressBar(false);
+        }
+    }
+    
+    /**
+     * Define estado de geração para um relatório específico
+     */
+    setReportGeneratingState(type, generating) {
+        const category = this.getReportCategoryElement(type);
+        if (category) {
+            category.classList.remove('success', 'error');
+            if (generating) {
+                category.classList.add('generating');
+            } else {
+                category.classList.remove('generating');
+            }
+        }
+    }
+    
+    /**
+     * Define estado de sucesso para um relatório
+     */
+    setReportSuccessState(type) {
+        const category = this.getReportCategoryElement(type);
+        if (category) {
+            category.classList.remove('generating', 'error');
+            category.classList.add('success');
+        }
+    }
+    
+    /**
+     * Define estado de erro para um relatório
+     */
+    setReportErrorState(type) {
+        const category = this.getReportCategoryElement(type);
+        if (category) {
+            category.classList.remove('generating', 'success');
+            category.classList.add('error');
+        }
+    }
+    
+    /**
+     * Define estado de geração para todos os relatórios
+     */
+    setAllReportsGeneratingState(generating) {
+        const allReportsBtn = document.getElementById('generate-all-reports-btn');
+        if (allReportsBtn) {
+            if (generating) {
+                allReportsBtn.disabled = true;
+                allReportsBtn.classList.add('loading');
+                allReportsBtn.innerHTML = '<span class="btn-icon">⏳</span>Gerando...</span>';
+            } else {
+                allReportsBtn.disabled = false;
+                allReportsBtn.classList.remove('loading');
+                allReportsBtn.innerHTML = '<span class="btn-icon">🚀</span>Gerar Todos os Relatórios';
+            }
+        }
+    }
+    
+    /**
+     * Define estado de sucesso para todos os relatórios
+     */
+    setAllReportsSuccessState() {
+        const allReportsBtn = document.getElementById('generate-all-reports-btn');
+        if (allReportsBtn) {
+            allReportsBtn.classList.remove('loading');
+            allReportsBtn.classList.add('btn-success');
+            allReportsBtn.innerHTML = '<span class="btn-icon">✅</span>Relatórios Gerados!';
+        }
+    }
+    
+    /**
+     * Define estado de erro para todos os relatórios
+     */
+    setAllReportsErrorState() {
+        const allReportsBtn = document.getElementById('generate-all-reports-btn');
+        if (allReportsBtn) {
+            allReportsBtn.classList.remove('loading');
+            allReportsBtn.classList.add('btn-danger');
+            allReportsBtn.innerHTML = '<span class="btn-icon">❌</span>Erro ao Gerar';
+        }
+    }
+    
+    /**
+     * Reseta o estado de um relatório específico
+     */
+    resetReportState(type) {
+        const category = this.getReportCategoryElement(type);
+        if (category) {
+            category.classList.remove('generating', 'success', 'error');
+        }
+    }
+    
+    /**
+     * Reseta o estado de todos os relatórios
+     */
+    resetAllReportsState() {
+        const allReportsBtn = document.getElementById('generate-all-reports-btn');
+        if (allReportsBtn) {
+            allReportsBtn.classList.remove('loading', 'btn-success', 'btn-danger');
+            allReportsBtn.classList.add('btn-secondary');
+            allReportsBtn.disabled = false;
+            allReportsBtn.innerHTML = '<span class="btn-icon">🚀</span>Gerar Todos os Relatórios';
+        }
+    }
+    
+    /**
+     * Atualiza o status dos relatórios
+     */
+    updateReportsStatus(message) {
+        const statusText = document.getElementById('reports-status-text');
+        if (statusText) {
+            statusText.textContent = message;
+        }
+    }
+    
+    /**
+     * Mostra/oculta a barra de progresso
+     */
+    showProgressBar(show) {
+        const progressBar = document.getElementById('reports-progress');
+        if (progressBar) {
+            progressBar.style.display = show ? 'block' : 'none';
+        }
+    }
+    
+    /**
+     * Obtém o elemento da categoria de relatório
+     */
+    getReportCategoryElement(type) {
+        const typeMap = {
+            'attacks': 'pdf-attacks-btn',
+            'statistics': 'excel-stats-btn',
+            'notifications': 'excel-notifications-btn',
+            'consolidated': 'excel-consolidated-btn'
+        };
+        
+        const buttonId = typeMap[type];
+        if (buttonId) {
+            const button = document.getElementById(buttonId);
+            return button?.closest('.report-category');
+        }
+        return null;
     }
 }
 
