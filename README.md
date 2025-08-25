@@ -346,7 +346,7 @@ services:
 - [X] **Dashboard Web** - Interface gráfica para visualização
 - [ ] **Cache Redis** - Otimização de performance
 - [ ] **Métricas Avançadas** - Análises de segurança
-- [ ] **Sistema de Alertas** - Notificações em tempo real
+- [x] **Sistema de Alertas** - Notificações em tempo real
 - [ ] **Relatórios Automáticos** - PDF/Excel
 
 ### **FASE 4: Testes e Qualidade (PRÓXIMOS PASSOS)**

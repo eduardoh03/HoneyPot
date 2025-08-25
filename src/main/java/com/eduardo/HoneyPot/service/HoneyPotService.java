@@ -59,6 +59,10 @@ public class HoneyPotService {
             
             isRunning = true;
             
+            // Criar notificação de sistema - Honeypot iniciado
+            notificationService.createSystemNotification("SUCCESS", "Honeypot Iniciado", 
+                "Honeypot SSH/Telnet foi iniciado com sucesso nas portas " + sshPort + " e " + telnetPort);
+            
             // Aceitar conexões SSH
             executorService.submit(() -> acceptSSHConnections());
             
@@ -169,12 +173,8 @@ public class HoneyPotService {
             
             // Simular handshake SSH (simplificado)
             String line;
-            boolean hasInteraction = false;
-            
             while ((line = in.readLine()) != null && isRunning) {
                 log.info("SSH [{}]: {}", clientIp, line);
-                hasInteraction = true;
-                
                 // Simular resposta SSH para handshake
                 if (line.contains("SSH")) {
                     out.println("SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.5");
@@ -211,6 +211,11 @@ public class HoneyPotService {
             
         } catch (IOException e) {
             log.error("Erro na conexão SSH com {}: {}", clientIp, e.getMessage());
+            
+            // ALERTA: Erro de conexão SSH
+            notificationService.createAttackNotification("ERROR", "Erro de Conexão SSH", 
+                "Falha na conexão SSH: " + e.getMessage(), clientIp, "SSH", null);
+                
             attackLog.setUsername("erro_conexao");
             attackLog.setPassword("erro: " + e.getMessage());
             attackLog.setSuccessful(false);
@@ -271,6 +276,12 @@ public class HoneyPotService {
                         attackLog.addCommand(command);
                         attackLogRepository.save(attackLog);
                         
+                        // ALERTA: Comando executado detectado
+                        if (isCriticalCommand(command)) {
+                            notificationService.createAttackNotification("WARNING", "Comando Crítico Detectado", 
+                                "Comando potencialmente perigoso executado: " + command, clientIp, "TELNET", attackLog.getUsername());
+                        }
+                        
                         // Processar comando
                         String response = processFakeCommand(command, clientIp);
                         if (response != null) {
@@ -291,6 +302,10 @@ public class HoneyPotService {
             
         } catch (IOException e) {
             log.error("Erro na conexão Telnet com {}: {}", clientIp, e.getMessage());
+            
+            // ALERTA: Erro de conexão Telnet
+            notificationService.createAttackNotification("ERROR", "Erro de Conexão Telnet", 
+                "Falha na conexão Telnet: " + e.getMessage(), clientIp, "TELNET", null);
         } finally {
             try {
                 clientSocket.close();
@@ -308,6 +323,19 @@ public class HoneyPotService {
      * Processa comandos fake de forma realista
      */
     private String processFakeCommand(String command, String clientIp) {
+        // ALERTA: Comandos de reconhecimento de rede
+        if (command.startsWith("netstat") || command.startsWith("ss") || command.startsWith("iptables")) {
+            notificationService.createAttackNotification("INFO", "Reconhecimento de Rede", 
+                "Comando de análise de rede executado: " + command, clientIp, "TELNET", "root");
+        }
+        
+        // ALERTA: Tentativa de download
+        if (command.startsWith("wget") || command.startsWith("curl")) {
+            notificationService.createAttackNotification("WARNING", "Tentativa de Download", 
+                "Tentativa de download detectada: " + command, clientIp, "TELNET", "root");
+        }
+        
+
         String[] parts = command.split("\\s+");
         String cmd = parts[0].toLowerCase();
         String[] args = parts.length > 1 ? java.util.Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
@@ -333,6 +361,11 @@ public class HoneyPotService {
                 case "free":
                     return processFreeCommand();
                 case "cat":
+                    // ALERTA: Tentativa de acesso a arquivo
+                    if (args.length > 0 && isSensitiveFile(args[0])) {
+                        notificationService.createAttackNotification("WARNING", "Tentativa de Acesso a Arquivo Sensível", 
+                            "Tentativa de leitura de arquivo sensível: " + args[0], clientIp, "TELNET", "root");
+                    }
                     return processCatCommand(args);
                 case "head":
                     return processHeadCommand(args);
@@ -614,5 +647,39 @@ public class HoneyPotService {
         output.append("    6  cat /etc/passwd\n");
         output.append("    7  history\n");
         return output.toString();
+    }
+    
+    /**
+     * Verifica se um comando é considerado crítico
+     */
+    private boolean isCriticalCommand(String command) {
+        String[] criticalCommands = {
+            "rm", "rmdir", "chmod", "chown", "iptables", "systemctl", "service",
+            "wget", "curl", "nc", "ncat", "telnet", "ssh", "scp", "sftp"
+        };
+        
+        for (String critical : criticalCommands) {
+            if (command.startsWith(critical)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Verifica se um arquivo é sensível
+     */
+    private boolean isSensitiveFile(String filename) {
+        String[] sensitiveFiles = {
+            "/etc/passwd", "/etc/shadow", "/etc/hosts", "/proc/version",
+            "/etc/network/interfaces", "/etc/resolv.conf", "/etc/fstab"
+        };
+        
+        for (String sensitive : sensitiveFiles) {
+            if (filename.equals(sensitive)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
