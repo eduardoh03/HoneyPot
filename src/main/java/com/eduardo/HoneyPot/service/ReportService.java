@@ -5,10 +5,21 @@ import com.eduardo.HoneyPot.model.CommandExecution;
 import com.eduardo.HoneyPot.model.Notification;
 import com.eduardo.HoneyPot.repository.AttackLogRepository;
 import com.eduardo.HoneyPot.repository.NotificationRepository;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.draw.SolidLine;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.LineSeparator;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.VerticalAlignment;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -517,38 +528,240 @@ public class ReportService {
             .collect(Collectors.joining("; "));
     }
     
-    private byte[] generateBasicPDFReport(List<AttackLog> attacks) {
+        private byte[] generateBasicPDFReport(List<AttackLog> attacks) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             PdfWriter writer = new PdfWriter(outputStream);
             PdfDocument pdf = new PdfDocument(writer);
-            Document document = new Document(pdf);
+            Document document = new Document(pdf, PageSize.A4);
     
-            // Título
-            document.add(new Paragraph("Relatório de Ataques Honeypot")
-                    .setBold()
-                    .setFontSize(16));
+            document.setMargins(25, 25, 25, 25);
     
-            document.add(new Paragraph("Data de Geração: " +
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+            // Fonte
+            PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+            PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
     
-            document.add(new Paragraph("Total de Ataques: " + attacks.size()));
-            document.add(new Paragraph("\n"));
+            // Título principal
+            Paragraph title = new Paragraph("RELATÓRIO DE ATAQUES HONEYPOT")
+                    .setFont(fontBold)
+                    .setFontSize(20)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(15);
+            document.add(title);
     
-            // Lista de ataques
-            for (AttackLog attack : attacks) {
-                document.add(new Paragraph(
-                    "IP: " + attack.getSourceIp() +
-                    " | Protocolo: " + attack.getProtocol() +
-                    " | Data: " + formatDateTime(attack.getTimestamp())
-                ));
+            // Subtítulo
+            Paragraph subtitle = new Paragraph("Sistema de Monitoramento de Segurança")
+                    .setFont(font)
+                    .setFontSize(14)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20);
+            document.add(subtitle);
+    
+            // Linha divisória
+            LineSeparator separator = new LineSeparator(new SolidLine());
+            separator.setMarginBottom(20);
+            document.add(separator);
+    
+            // Metadados em tabela
+            Table metadataTable = new Table(new float[]{2, 3});
+            metadataTable.setWidth(UnitValue.createPercentValue(100));
+            metadataTable.setMarginBottom(25);
+    
+            // Adicionar metadados
+            addMetadataRow(metadataTable, "Data de Geração:", 
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")), font, fontBold);
+            addMetadataRow(metadataTable, "Total de Ataques:", String.valueOf(attacks.size()), font, fontBold);
+            
+            if (!attacks.isEmpty()) {
+                LocalDateTime firstAttack = attacks.stream().map(AttackLog::getTimestamp).min(LocalDateTime::compareTo).orElse(null);
+                LocalDateTime lastAttack = attacks.stream().map(AttackLog::getTimestamp).max(LocalDateTime::compareTo).orElse(null);
+                String period = firstAttack != null && lastAttack != null ? 
+                    formatDateTime(firstAttack) + " até " + formatDateTime(lastAttack) : "N/A";
+                addMetadataRow(metadataTable, "Período Analisado:", period, font, fontBold);
             }
+    
+            document.add(metadataTable);
+    
+            // Resumo estatístico simplificado
+            if (!attacks.isEmpty()) {
+                Paragraph summaryTitle = new Paragraph("RESUMO ESTATÍSTICO")
+                        .setFont(fontBold)
+                        .setFontSize(16)
+                        .setMarginBottom(10);
+                document.add(summaryTitle);
+    
+                // Estatísticas por protocolo em formato compacto
+                Map<String, Long> protocolCounts = attacks.stream()
+                    .collect(Collectors.groupingBy(AttackLog::getProtocol, Collectors.counting()));
+    
+                long total = attacks.size();
+                for (Map.Entry<String, Long> entry : protocolCounts.entrySet()) {
+                    String protocolInfo = String.format("%s: %d ataques (%.1f%%)", 
+                        entry.getKey(), entry.getValue(), (entry.getValue() * 100.0) / total);
+                    document.add(new Paragraph(protocolInfo)
+                        .setFont(font)
+                        .setFontSize(11)
+                        .setMarginBottom(5));
+                }
+                
+                document.add(new Paragraph("").setMarginBottom(15));
+            }
+    
+            // Tabela de ataques simplificada
+            if (!attacks.isEmpty()) {
+                Paragraph attacksTitle = new Paragraph("ATAQUES RECENTES")
+                        .setFont(fontBold)
+                        .setFontSize(16)
+                        .setMarginBottom(10);
+                document.add(attacksTitle);
+    
+                // Tabela compacta com apenas as informações essenciais
+                Table attacksTable = new Table(new float[]{2.5f, 2.0f, 1.5f, 2.0f});
+                attacksTable.setWidth(UnitValue.createPercentValue(100));
+    
+                // Cabeçalho simplificado
+                addHeaderCell(attacksTable, "Data/Hora", fontBold);
+                addHeaderCell(attacksTable, "IP Atacante", fontBold);
+                addHeaderCell(attacksTable, "Protocolo", fontBold);
+                addHeaderCell(attacksTable, "Usuário", fontBold);
+    
+                // Dados dos ataques (limitado e simplificado)
+                int maxRows = Math.min(attacks.size(), 25); // Máximo 25 linhas para PDF
+                for (int i = 0; i < maxRows; i++) {
+                    AttackLog attack = attacks.get(i);
+                    addDataCell(attacksTable, formatDateTime(attack.getTimestamp()), font);
+                    addDataCell(attacksTable, attack.getSourceIp(), font);
+                    addDataCell(attacksTable, attack.getProtocol(), font);
+                    addDataCell(attacksTable, attack.getUsername(), font);
+                }
+    
+                document.add(attacksTable);
+    
+                // Nota sobre limitação
+                if (attacks.size() > maxRows) {
+                    Paragraph note = new Paragraph("Nota: Este relatório mostra os " + maxRows + " ataques mais recentes. " +
+                        "Para dados completos (incluindo senhas e comandos), utilize o relatório em Excel.")
+                            .setFont(font)
+                            .setFontSize(9)
+                            .setItalic()
+                            .setTextAlignment(TextAlignment.CENTER)
+                            .setMarginTop(10);
+                    document.add(note);
+                }
+            }
+    
+            // Rodapé
+            Paragraph footer = new Paragraph("Relatório gerado automaticamente pelo Sistema HoneyPot de Segurança")
+                    .setFont(font)
+                    .setFontSize(10)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginTop(30);
+            document.add(footer);
+    
+            // Fechar documento
+            document.close();
+            return outputStream.toByteArray();
+            
+        } catch (Exception e) {
+            log.error("Erro ao gerar PDF: {}", e.getMessage());
+            return generateErrorPDF("Erro ao gerar relatório: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Gera PDF de erro quando há falha na geração
+     */
+    private byte[] generateErrorPDF(String errorMessage) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            PdfWriter writer = new PdfWriter(outputStream);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf, PageSize.A4);
+    
+            document.setMargins(50, 50, 50, 50);
+    
+            PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+            PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+    
+            Paragraph title = new Paragraph("ERRO NA GERAÇÃO DO RELATÓRIO")
+                    .setFont(fontBold)
+                    .setFontSize(20)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(30);
+            document.add(title);
+    
+            Paragraph error = new Paragraph("Ocorreu um erro durante a geração do relatório:")
+                    .setFont(font)
+                    .setFontSize(14)
+                    .setMarginBottom(20);
+            document.add(error);
+    
+            Paragraph message = new Paragraph(errorMessage)
+                    .setFont(font)
+                    .setFontSize(12)
+                    .setMarginBottom(30);
+            document.add(message);
+    
+            Paragraph timestamp = new Paragraph("Data/Hora: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
+                    .setFont(font)
+                    .setFontSize(10)
+                    .setTextAlignment(TextAlignment.CENTER);
+            document.add(timestamp);
     
             document.close();
             return outputStream.toByteArray();
+            
         } catch (Exception e) {
-            log.error("Erro ao gerar PDF: {}", e.getMessage());
-            return new byte[0];
+            log.error("Erro ao gerar PDF de erro: {}", e.getMessage());
+            return "Erro na geração do relatório".getBytes();
         }
     }
+    
+    /**
+     * Adiciona uma linha de metadados na tabela
+     */
+    private void addMetadataRow(Table table, String label, String value, PdfFont font, PdfFont fontBold) {
+        com.itextpdf.layout.element.Cell labelCell = new com.itextpdf.layout.element.Cell().add(new Paragraph(label).setFont(fontBold));
+        labelCell.setPadding(5);
+        labelCell.setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY);
+        
+        com.itextpdf.layout.element.Cell valueCell = new com.itextpdf.layout.element.Cell().add(new Paragraph(value != null ? value : "").setFont(font));
+        valueCell.setPadding(5);
+        
+        table.addCell(labelCell);
+        table.addCell(valueCell);
+    }
+    
+    /**
+     * Adiciona uma célula de cabeçalho
+     */
+    private void addHeaderCell(Table table, String text, PdfFont font) {
+        com.itextpdf.layout.element.Cell cell = new com.itextpdf.layout.element.Cell().add(new Paragraph(text).setFont(font));
+        cell.setPadding(8);
+        cell.setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY);
+        table.addHeaderCell(cell);
+    }
+    
+    /**
+     * Adiciona uma célula de dados
+     */
+    private void addDataCell(Table table, String text, PdfFont font) {
+        String truncatedText = truncateText(text, 20); // Limitar a 20 caracteres
+        com.itextpdf.layout.element.Cell cell = new com.itextpdf.layout.element.Cell().add(new Paragraph(truncatedText).setFont(font));
+        cell.setPadding(5);
+        table.addCell(cell);
+    }
+    
+    /**
+     * Trunca texto para um tamanho máximo
+     */
+    private String truncateText(String text, int maxLength) {
+        if (text == null || text.isEmpty()) {
+            return "-";
+        }
+        if (text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength - 3) + "...";
+    }
+        
     
 }
