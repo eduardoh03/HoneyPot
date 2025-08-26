@@ -59,6 +59,67 @@
             </div>
         </section>
 
+        <!-- Reports Panel -->
+        <section class="reports-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Geração de Relatórios</h2>
+                    <p>Gere relatórios detalhados em PDF e Excel</p>
+                </div>
+                <div class="reports-grid">
+                    <div class="report-category">
+                        <h3>Relatórios de Ataques</h3>
+                        <div class="report-buttons">
+                            <button id="pdf-attacks-btn" class="btn btn-danger">
+                                PDF
+                            </button>
+                            <button id="excel-attacks-btn" class="btn btn-success">
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="report-category">
+                        <h3>Relatórios de Estatísticas</h3>
+                        <div class="report-buttons">
+                            <button id="excel-stats-btn" class="btn btn-primary">
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="report-category">
+                        <h3>Relatórios de Notificações</h3>
+                        <div class="report-buttons">
+                            <button id="excel-notifications-btn" class="btn btn-warning">
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="report-category">
+                        <h3>Relatório Consolidado</h3>
+                        <div class="report-buttons">
+                            <button id="excel-consolidated-btn" class="btn btn-info">
+                                Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="reports-actions">
+                    <button id="generate-all-reports-btn" class="btn btn-secondary btn-large">
+                        Gerar Todos os Relatórios
+                    </button>
+                    <div class="reports-status">
+                        <div id="reports-progress" class="progress-bar" style="display: none;">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Notifications Panel -->
         <section class="notifications-panel">
             <div class="card">
