@@ -534,6 +534,7 @@ public class ReportService {
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf, PageSize.A4);
     
+            // Margens reduzidas para melhor aproveitamento do espaço
             document.setMargins(25, 25, 25, 25);
     
             // Fonte
