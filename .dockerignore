@@ -1,0 +1,34 @@
+# Ignorar arquivos de build
+
+*.war
+
+# Ignorar arquivos do Git
+.git
+.gitignore
+
+# Ignorar arquivos do IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Ignorar arquivos temporários
+*.tmp
+*.temp
+*.log
+
+# Ignorar arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar documentação
+README.md
+HELP.md
+*.md
+
+# Ignorar scripts de teste
+test-*.sh
+
+# Ignorar diretório do Docker
+docker/
