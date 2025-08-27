@@ -1,15 +1,36 @@
 # HoneyPot SSH/Telnet com Spring Boot
 
-> **Sistema de honeypot profissional para captura e análise de ataques SSH/Telnet**
+> **Sistema de honeypot educacional para estudo e análise de ataques SSH/Telnet**
 
 [![Java](https://img.shields.io/badge/Java-24.0.2-orange.svg)](https://openjdk.java.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-green.svg)](https://spring.io/projects/spring-boot)
 [![MongoDB](https://img.shields.io/badge/MongoDB-5.5.1-blue.svg)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Educational](https://img.shields.io/badge/Purpose-Educational-blue.svg)](https://github.com/yourusername/honeypot)
+
+## AVISO IMPORTANTE - PROPÓSITO EDUCACIONAL
+
+**Este projeto foi desenvolvido exclusivamente para fins educacionais e de pesquisa.**
+
+### Sobre o Projeto
+- **Finalidade:** Aprendizado e estudo de segurança cibernética
+- **Não comercial:** Este software não está à venda e nunca será comercializado
+- **Educacional:** Criado para fins acadêmicos e de pesquisa em cybersecurity
+- **Responsabilidade:** Use apenas em ambiente controlado e para fins legítimos
+- **Legal:** O uso deve estar em conformidade com as leis locais
+
+### Tecnologias Utilizadas
+O projeto foi construído com as seguintes tecnologias:
+- **Backend:** Java 24 + Spring Boot 3.5.4
+- **Banco de Dados:** MongoDB 5.5.1 com Spring Data
+- **Documentação:** OpenAPI 3 (Swagger)
+- **Containerização:** Docker + Docker Compose
+- **Logging:** SLF4J + Logback
+- **Build:** Maven 3.6+
 
 ## Visão Geral
 
-Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, seguindo princípios **SOLID** e **Clean Architecture**. O sistema captura, analisa e monitora tentativas de ataque em tempo real, fornecendo insights valiosos sobre padrões de segurança.
+Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, seguindo princípios **SOLID** e **Clean Architecture**. O sistema simula serviços SSH e Telnet vulneráveis para capturar, analisar e monitorar tentativas de ataque em tempo real, fornecendo insights valiosos sobre padrões de ataques cibernéticos para fins educacionais.
 
 ## Arquitetura do Sistema
 
@@ -18,24 +39,24 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Presentation Layer                       │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ HoneyPotController │  │   Web Security  │  │   Swagger   │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+│  ┌───────────────────┐  ┌─────────────────┐  ┌─────────────┐│
+│  │ HoneyPotController│  │   Web Security  │  │   Swagger   ││
+│  └───────────────────┘  └─────────────────┘  └─────────────┘│
 └─────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────┐
 │                     Business Layer                          │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ HoneyPotService │  │  LogService     │  │StatisticsSvc│ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
-│  ┌─────────────────┐                                       │
-│  │ManagementService│                                       │
-│  └─────────────────┘                                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐  │
+│  │ HoneyPotService │  │  LogService     │  │StatisticsSvc│  │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘  │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐  │
+│  │ManagementService│  │NotificationSvc  │  │ ReportSvc   │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────┐
-│                     Data Layer                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │AttackLogRepository│  │  MongoDB       │  │   Cache     │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+│                     Data Layer                              │
+│  ┌───────────────────┐  ┌─────────────────┐                 │
+│  │AttackLogRepository│  │  MongoDB        │                 │
+│  └───────────────────┘  └─────────────────┘                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -47,38 +68,61 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 | **LogService** | Gerenciamento de logs e consultas | ✅ Implementado |
 | **StatisticsService** | Análises e estatísticas | ✅ Implementado |
 | **ManagementService** | Controle e monitoramento | ✅ Implementado |
+| **NotificationService** | Sistema de notificações e alertas | ✅ Implementado |
+| **ReportService** | Geração de relatórios e exportação | ✅ Implementado |
 
-## Funcionalidades Implementadas
+## O que o Projeto Faz
 
-### **Core da Honeypot**
-- ✅ **Portas SSH (2222/22)** e **Telnet (2323/23)** configuráveis
-- ✅ **Banners falsos** simulando OpenSSH/Telnet real
+Este honeypot educacional simula serviços SSH e Telnet vulneráveis para capturar e analisar tentativas de ataques cibernéticos. É uma ferramenta de aprendizado que permite:
+
+### **Objetivos Educacionais**
+- **Análise de Comportamento:** Entender como atacantes agem em sistemas vulneráveis
+- **Estudo de Padrões:** Identificar credenciais, comandos e técnicas mais utilizadas
+- **Visualização de Dados:** Dashboard web para análise visual dos ataques
+- **Sistema de Alertas:** Notificações em tempo real de atividades suspeitas
+- **Documentação:** Logs detalhados de todas as interações para estudo posterior
+
+### **Funcionalidades Implementadas**
+
+#### **Core da Honeypot**
+- ✅ **Serviços SSH (porta 2222/22) e Telnet (porta 2323/23)** configuráveis
+- ✅ **Banners realistas** simulando OpenSSH e sistemas Ubuntu autênticos
 - ✅ **Captura de credenciais** (usuário/senha) em tempo real
-- ✅ **Shell fake** com comandos básicos (`ls`, `pwd`, `uname`, `echo`)
-- ✅ **Logging automático** de todas as interações
-- ✅ **Auto-inicialização** configurável
+- ✅ **Shell interativo fake** com 25+ comandos Linux simulados (`ls`, `pwd`, `ps`, `netstat`, etc.)
+- ✅ **Detecção de comandos críticos** (wget, curl, iptables, systemctl)
+- ✅ **Logging automático** de todas as interações e comandos
+- ✅ **Auto-inicialização** configurável por perfil
 
-### **Persistência e Dados**
-- ✅ **MongoDB** com Spring Data
-- ✅ **Collection `attack_logs`** estruturada
+#### **Persistência e Dados**
+- ✅ **MongoDB** com Spring Data para armazenamento de logs
+- ✅ **Collection `attack_logs`** com schema estruturado
+- ✅ **Sistema de notificações** com diferentes tipos de alertas
 - ✅ **Índices otimizados** para consultas rápidas
-- ✅ **Docker Compose** para MongoDB + Mongo Express
+- ✅ **Docker Compose** para infraestrutura completa (MongoDB + Mongo Express)
 
-### **API REST Completa**
-- ✅ **16 endpoints** implementados e testados
-- ✅ **Paginação inteligente** nos logs
-- ✅ **Filtros avançados** (IP, protocolo, período, usuário)
-- ✅ **Estatísticas em tempo real**
-- ✅ **Health checks** e monitoramento
-- ✅ **Tratamento de erros** centralizado
+#### **API REST Completa (20+ Endpoints)**
+- ✅ **Controle da Honeypot:** start, stop, restart, status, health
+- ✅ **Gestão de Logs:** consulta paginada com filtros avançados
+- ✅ **Estatísticas em Tempo Real:** top IPs, credenciais, timeline
+- ✅ **Sistema de Notificações:** alertas, filtros, marcação como lida
+- ✅ **Relatórios:** exportação em PDF e Excel
+- ✅ **Documentação OpenAPI:** Swagger UI integrado
 
-### **Arquitetura e Qualidade**
-- ✅ **Clean Architecture** implementada
-- ✅ **Separação de responsabilidades** (SOLID)
-- ✅ **Services especializados** por domínio
-- ✅ **Controller limpo** apenas com mapeamento HTTP
-- ✅ **Logs estruturados** e centralizados
-- ✅ **Configuração por perfis** (dev/prod)
+#### **Dashboard Web Interativo**
+- ✅ **Interface responsiva** com design moderno
+- ✅ **Gráficos em tempo real** de ataques por hora
+- ✅ **Métricas visuais:** contadores, top atacantes, credenciais
+- ✅ **Filtros dinâmicos** por protocolo, IP, período
+- ✅ **Notificações em tempo real** com diferentes níveis de prioridade
+
+#### **Arquitetura e Qualidade**
+- ✅ **Clean Architecture** com separação clara de responsabilidades
+- ✅ **Princípios SOLID** aplicados em toda a estrutura
+- ✅ **Services especializados** por domínio (Logs, Stats, Management, Notifications, Reports)
+- ✅ **Controller RESTful** limpo com documentação OpenAPI
+- ✅ **Logs estruturados** com diferentes níveis (INFO, WARN, ERROR)
+- ✅ **Configuração por perfis** (desenvolvimento/produção)
+- ✅ **Tratamento de erros** centralizado e consistente
 
 ## Como Usar
 
@@ -90,10 +134,6 @@ Honeypot SSH/Telnet desenvolvido em **Spring Boot** com arquitetura limpa, segui
 - Maven 3.6+
 - Docker e Docker Compose
 - Linux/Unix (para portas privilegiadas)
-
-# Variáveis de ambiente
-export JAVA_HOME=/usr/lib/jvm/jdk-24.0.2-oracle-x64
-export PATH=$JAVA_HOME/bin:$PATH
 ```
 
 ### 1. Iniciar Infraestrutura
@@ -344,10 +384,9 @@ services:
 
 ### **FASE 3: Funcionalidades Avançadas (EM DESENVOLVIMENTO)**
 - [X] **Dashboard Web** - Interface gráfica para visualização
-- [ ] **Cache Redis** - Otimização de performance
 - [ ] **Métricas Avançadas** - Análises de segurança
 - [x] **Sistema de Alertas** - Notificações em tempo real
-- [ ] **Relatórios Automáticos** - PDF/Excel
+- [x] **Relatórios Automáticos** - PDF/Excel
 
 ### **FASE 4: Testes e Qualidade (PRÓXIMOS PASSOS)**
 - [ ] **Testes Unitários** - JUnit 5 + Mockito
@@ -363,50 +402,45 @@ services:
 - [ ] **Segurança** - OWASP ZAP
 - [ ] **Deploy** - Kubernetes
 
-## Testes
 
-### **Testes Unitários**
-```bash
-# Executar todos os testes
-./mvnw test
+## Segurança e Responsabilidade
 
-# Executar com cobertura
-./mvnw test jacoco:report
+### **AVISOS CRÍTICOS DE SEGURANÇA**
 
-# Executar testes específicos
-./mvnw test -Dtest=LogServiceTest
-```
+> **ATENÇÃO**: Esta honeypot é exclusivamente para fins educacionais e de pesquisa.
 
-### **Testes de Integração**
-```bash
-# Testes com containers
-./mvnw verify
+#### **Declaração de Responsabilidade**
+- **Uso Educacional Apenas:** Este software foi criado para aprendizado e pesquisa
+- **Proibido Uso Malicioso:** Não use para atividades ilegais ou não autorizadas
+- **Ambiente Controlado:** Execute apenas em laboratórios e ambientes de teste
+- **Conformidade Legal:** O usuário é responsável por cumprir leis locais
+- **Isolamento Obrigatório:** Nunca exponha diretamente à internet pública
 
-# Testes específicos
-./mvnw test -Dtest=HoneyPotIntegrationTest
-```
+#### **AVISO SOBRE COMERCIALIZAÇÃO**
 
-### **Testes de Performance**
-```bash
-# Teste de carga com JMeter
-jmeter -n -t tests/performance/honeypot-load-test.jmx
+**ESTE SOFTWARE NÃO É COMERCIAL E NUNCA SERÁ VENDIDO**
 
-# Teste de stress
-./mvnw gatling:test
-```
+- **Projeto Acadêmico:** Desenvolvido para fins puramente educacionais
+- **Sempre Gratuito:** Este software permanecerá sempre gratuito
+- **Não à Venda:** Não tem e nunca terá propósito comercial
+- **Código Aberto:** Disponível para a comunidade acadêmica
+- **Compartilhamento:** Incentivamos o uso em universidades e cursos
 
-## Segurança
+### **Recomendações de Segurança para Uso Educacional**
 
-### **Avisos Importantes**
-> **ATENÇÃO**: Esta honeypot é para fins educacionais e de pesquisa.
+#### **Ambiente Seguro**
+1. **Isolamento Obrigatório:** Execute em VM isolada ou container Docker
+2. **Firewall:** Configure regras restritivas de acesso
+3. **Monitoramento:** Logs e alertas para detectar uso inadequado
+4. **Rede Local:** Use apenas em redes internas, nunca em internet pública
+5. **Backup Seguro:** Estratégia de backup criptografado para logs
+6. **Auditoria Regular:** Revisão periódica de logs e atividades
 
-### **Recomendações de Produção**
-1. **Isolamento**: Execute em container Docker isolado
-2. **Firewall**: Configure regras de acesso restritas
-3. **Monitoramento**: Logs e alertas 24/7
-4. **Rede**: Não exponha em rede pública sem proteção
-5. **Backup**: Estratégia de backup para logs
-6. **Auditoria**: Revisão regular de logs
+#### **Responsabilidades do Usuário**
+- **Documentação:** Mantenha registro de uso para fins acadêmicos
+- **Supervisão:** Uso sob supervisão de instrutor qualificado (recomendado)
+- **Incident Response:** Plano de resposta para uso inadequado
+- **Acesso Controlado:** Limite acesso apenas a pesquisadores autorizados
 
 ### **Configurações de Segurança**
 ```properties
@@ -508,49 +542,100 @@ echo $JAVA_HOME
 - [Nmap](https://nmap.org/) - Scanner de rede
 - [Metasploit](https://www.metasploit.com/) - Framework de teste
 
-## Contribuição
+## Contribuição Educacional
 
-### **Como Contribuir**
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+### **Como Contribuir para o Projeto Educacional**
+Este projeto aceita contribuições que melhorem seu valor educacional:
 
-### **Reportar Bugs**
-- Use o sistema de Issues do GitHub
-- Inclua logs detalhados
-- Descreva os passos para reproduzir
-- Especifique ambiente e versões
+1. **Fork o Projeto:** Crie sua própria cópia para experimentação
+2. **Crie uma Branch Educacional:** `git checkout -b feature/EducationalImprovement`
+3. **Documente suas Mudanças:** Inclua explicações pedagógicas
+4. **Commit com Propósito:** `git commit -m 'Add educational feature: X'`
+5. **Push Educacional:** `git push origin feature/EducationalImprovement`
+6. **Pull Request Acadêmico:** Explique o valor educacional da contribuição
 
-### **Sugestões de Features**
-- Abra uma Issue com label `enhancement`
-- Descreva o caso de uso
-- Inclua mockups se aplicável
-- Discuta implementação com a comunidade
+### **Tipos de Contribuições Bem-Vindas**
+- **Melhorias na Documentação:** Tutoriais, exemplos, explicações
+- **Material Didático:** Guias de laboratório, exercícios práticos
+- **Features Educacionais:** Funcionalidades que ajudam no aprendizado
+- **Correções de Bugs:** Sempre bem-vindas para melhorar a experiência
+- **Traduções:** Documentação em outros idiomas
+- **Análises:** Estudos de caso, relatórios de pesquisa
 
-## Licença
+### **Reportar Problemas**
+- **Issues Educacionais:** Use templates específicos para contexto acadêmico
+- **Logs Detalhados:** Inclua logs para fins de aprendizado
+- **Reprodução:** Passos claros para reproduzir problemas
+- **Ambiente:** Especifique ambiente de teste/laboratório
 
-Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
+### **Sugestões de Melhorias Educacionais**
+- **Label `educational-enhancement`:** Para features educacionais
+- **Caso de Uso Acadêmico:** Descreva aplicação em ensino
+- **Protótipos:** Mockups que melhorem a experiência de aprendizado
+- **Discussão Colaborativa:** Envolva a comunidade acadêmica
 
-## Autores
+## Licença Educacional
 
-- **Eduardo** - *Desenvolvimento inicial* - [@eduardo](https://github.com/eduardo)
+Este projeto está licenciado sob a **MIT License** com foco educacional - veja o arquivo [LICENSE](LICENSE) para detalhes completos.
 
-## Agradecimentos
+### **Características da Licença Educacional:**
+- **Uso Acadêmico Livre:** Universidades, escolas, cursos podem usar gratuitamente
+- **Modificação Permitida:** Adapte para suas necessidades educacionais
+- **Distribuição Educacional:** Compartilhe com outros educadores
+- **Uso Comercial Proibido:** Não pode ser vendido ou usado comercialmente
+- **Atribuição Acadêmica:** Credite o projeto em trabalhos acadêmicos
 
-- Comunidade Spring Boot
-- Contribuidores do MongoDB
+## Autor e Equipe Educacional
+
+- **Eduardo** - *Desenvolvedor Principal* - [@eduardoh03](https://github.com/eduardoh03)
+  - Criador do projeto para fins educacionais
+  - Especialista em segurança cibernética e ensino
+  - Aberto para colaborações acadêmicas
+
+## Agradecimentos Acadêmicos
+
+### **Comunidades que Inspiraram o Projeto:**
+- **Comunidade Spring Boot:** Framework educacional excepcional
+- **MongoDB Education:** Recursos e documentação de qualidade
+- **Comunidade Acadêmica de Cybersecurity:** Inspiração e feedback
+- **Educadores em Segurança:** Que compartilham conhecimento gratuitamente
+- **Projetos Open Source Educacionais:** Que servem de exemplo
+
+### **Instituições de Ensino (Convidadas a Usar):**
+- Universidades com cursos de Cybersecurity
+- Escolas técnicas de TI
+- Cursos online de segurança
+- Laboratórios de pesquisa em segurança
 
 ---
 
 <div align="center">
 
-**Se este projeto te ajudou, considere dar uma estrela!**
+## **Projeto Educacional Open Source**
 
+**Se este projeto educacional foi útil para seu aprendizado, considere dar uma estrela!**
+
+[![Educational](https://img.shields.io/badge/Purpose-Educational-blue.svg)](https://github.com/eduardoh03/HoneyPot)
+[![Free](https://img.shields.io/badge/Price-Always_Free-green.svg)](https://github.com/eduardoh03/HoneyPot)
 [![GitHub stars](https://img.shields.io/github/stars/eduardoh03/HoneyPot.svg?style=social&label=Star)](https://github.com/eduardoh03/HoneyPot)
 [![GitHub forks](https://img.shields.io/github/forks/eduardoh03/HoneyPot.svg?style=social&label=Fork)](https://github.com/eduardoh03/HoneyPot)
-[![GitHub issues](https://img.shields.io/github/issues/eduardoh03/HoneyPot.svg)](https://github.com/eduardoh03/HoneyPot/issues)
+
+### **Compartilhe o Conhecimento**
+
+Este projeto foi criado para a comunidade educacional. 
+Sinta-se livre para:
+- Usar em aulas e laboratórios
+- Estudar o código-fonte  
+- Realizar pesquisas acadêmicas
+- Contribuir com melhorias
+
+### **Lembrete Final**
+
+**NÃO É COMERCIAL • SEMPRE EDUCACIONAL • SEMPRE GRATUITO**
+
+---
+
+*Desenvolvidopara a comunidade educacional de cybersecurity*
 
 </div>
 
