@@ -13,7 +13,7 @@ services:
     networks:
       - honeypot-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,6 +42,8 @@ services:
     container_name: honeypot-app
     ports:
       - "8080:8080"
+      - "2222:2222"
+      - "2323:2323"
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATA_MONGODB_HOST: mongo
@@ -50,6 +52,10 @@ services:
       SPRING_DATA_MONGODB_USERNAME: root
       SPRING_DATA_MONGODB_PASSWORD: example
       SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE: admin
+      HONEYPOT_SSH_PORT: 2222
+      HONEYPOT_SSH_BANNER: "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1"
+      HONEYPOT_TELNET_PORT: 2323
+      HONEYPOT_TELNET_BANNER: "Ubuntu 22.04 LTS"
     depends_on:
       mongo:
         condition: service_healthy
@@ -57,7 +63,7 @@ services:
       - honeypot-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -65,6 +71,7 @@ services:
 
 volumes:
   mongo-data:
+
 
 networks:
   honeypot-network:

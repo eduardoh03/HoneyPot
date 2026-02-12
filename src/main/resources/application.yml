@@ -29,4 +29,10 @@ management:
     health:
       show-details: always
 
-# Configurações da honeypot movidas para application.properties
+honeypot:
+  ssh:
+    port: ${HONEYPOT_SSH_PORT:2222}
+    banner: ${HONEYPOT_SSH_BANNER:SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1}
+  telnet:
+    port: ${HONEYPOT_TELNET_PORT:2323}
+    banner: ${HONEYPOT_TELNET_BANNER:Ubuntu 22.04 LTS}
